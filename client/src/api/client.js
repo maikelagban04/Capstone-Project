@@ -1,4 +1,11 @@
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+const rawApiUrl = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+
+const normalizeApiUrl = (url) => {
+  const trimmed = url.trim().replace(/\/+$|^\s+|\s+$/g, "");
+  return trimmed.endsWith("/api") ? trimmed : `${trimmed}/api`;
+};
+
+const API_URL = normalizeApiUrl(rawApiUrl);
 
 export const apiRequest = async (endpoint, options = {}) => {
   const config = {
