@@ -5,60 +5,31 @@ const ProductCard = ({ product }) => {
   const { addToCart } = useCart();
 
   return (
-    <article className="card product-card">
-      <img src={product.image} alt={product.title} className="product-card__image" />
-      <div className="product-card__body">
-        <span className="pill">{product.componentType}</span>
-        <h3>{product.title}</h3>
-        <p className="product-brand-model">
-          <strong>{product.brand}</strong> {product.model}
-        </p>
-        <p className="product-description">{product.description}</p>
-
-        {/* Mostra specifiche chiave */}
-        {product.specifications && Object.keys(product.specifications).length > 0 && (
-          <dl className="product-specs">
-            {product.specifications.cores && (
-              <>
-                <dt>Cores:</dt>
-                <dd>{product.specifications.cores}</dd>
-              </>
-            )}
-            {product.specifications.memory && (
-              <>
-                <dt>Memory:</dt>
-                <dd>{product.specifications.memory}</dd>
-              </>
-            )}
-            {product.specifications.capacity && (
-              <>
-                <dt>Capacity:</dt>
-                <dd>{product.specifications.capacity}</dd>
-              </>
-            )}
-            {product.specifications.frequency && (
-              <>
-                <dt>Frequency:</dt>
-                <dd>{product.specifications.frequency}</dd>
-              </>
-            )}
-          </dl>
-        )}
-
-        <div className="price-row">
-          <div>
-            <strong>EUR {product.finalPrice.toFixed(2)}</strong>
-            <small>
-              Base EUR {product.priceBase.toFixed(2)} + {product.markup}% markup
-            </small>
+    <article className="card product-card h-100 shadow-hover">
+      <div className="position-relative overflow-hidden rounded-4">
+        <img src={product.image} alt={product.title} className="card-img-top feature-img" loading="lazy" decoding="async" />
+        <span className="badge badge-top">{product.componentType}</span>
+      </div>
+      <div className="card-body d-flex flex-column gap-3">
+        <div>
+          <h3 className="h6 mb-2">{product.title}</h3>
+          <p className="text-secondary mb-2">{product.brand} · {product.model}</p>
+          <p className="text-muted small truncate-3">{product.description}</p>
+        </div>
+        <div className="mt-auto">
+          <div className="d-flex align-items-center justify-content-between mb-3">
+            <div>
+              <strong className="d-block">EUR {product.finalPrice.toFixed(2)}</strong>
+              <small className="text-secondary">Base EUR {product.priceBase.toFixed(2)}</small>
+            </div>
           </div>
-          <div className="button-row">
-            <Link to={`/products/${product._id}`} className="button button--ghost">
+          <div className="d-flex gap-2 flex-wrap">
+            <Link to={`/products/${product._id}`} className="btn btn-sm btn-outline-primary flex-grow-1">
               Details
             </Link>
             <button
               type="button"
-              className="button"
+              className="btn btn-sm btn-primary flex-grow-1"
               onClick={() => addToCart(product)}
               disabled={!product.inStock}
             >

@@ -1,58 +1,19 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { apiRequest } from "../api/client";
 import ProductCard from "../components/ProductCard";
 
 const HomePage = () => {
   const [products, setProducts] = useState([]);
-  const [filterOptions, setFilterOptions] = useState({
-    brands: [],
-    componentTypes: [],
-    minPrice: 0,
-    maxPrice: 1000,
-    totalProducts: 0,
-  });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [search, setSearch] = useState("");
-  const [selectedComponent, setSelectedComponent] = useState("");
-  const [selectedBrand, setSelectedBrand] = useState("");
-  const [minPrice, setMinPrice] = useState("");
-  const [maxPrice, setMaxPrice] = useState("");
-  const [inStock, setInStock] = useState("all");
-  const [showFilters, setShowFilters] = useState(false);
+  const [featured, setFeatured] = useState([]);
 
-  // Carica le opzioni di filtro disponibili
   useEffect(() => {
-    const loadFilterOptions = async () => {
+    const loadFeatured = async () => {
       try {
-        const data = await apiRequest("/products/filters");
-        setFilterOptions(data);
-      } catch (err) {
-        console.error("Error loading filter options:", err);
-      }
-    };
-
-    loadFilterOptions();
-  }, []);
-
-  // Carica prodotti con filtri
-  useEffect(() => {
-    const loadProducts = async () => {
-      try {
-        setLoading(true);
-        const params = new URLSearchParams();
-        if (search) params.append("search", search);
-        if (selectedComponent) params.append("componentType", selectedComponent);
-        if (selectedBrand) params.append("brand", selectedBrand);
-        if (minPrice) params.append("minPrice", minPrice);
-        if (maxPrice) params.append("maxPrice", maxPrice);
-        if (inStock !== "all") params.append("inStock", inStock);
-        
-        const query = params.toString() ? `?${params.toString()}` : "";
-        const data = await apiRequest(`/products${query}`);
-        setProducts(data);
-        
-        setError("");
+        const data = await apiRequest("/products?limit=6");
+        setFeatured(data.slice(0, 6));
       } catch (requestError) {
         setError(requestError.message);
       } finally {
@@ -60,172 +21,84 @@ const HomePage = () => {
       }
     };
 
-    loadProducts();
-  }, [search, selectedComponent, selectedBrand, minPrice, maxPrice, inStock]);
-
-  const handleClearFilters = () => {
-    setSearch("");
-    setSelectedComponent("");
-    setSelectedBrand("");
-    setMinPrice("");
-    setMaxPrice("");
-    setInStock("all");
-  };
+    loadFeatured();
+  }, []);
 
   return (
-    <div className="stack-lg">
-      <section className="hero">
-        <div>
-          <span className="eyebrow">PC Components & Parts</span>
-          <h1>Your One-Stop Shop for Premium Computer Hardware</h1>
-          <p>
-            Discover high-quality PC components from leading brands. Find everything you need to
-            build or upgrade your system with competitive pricing and expert selection.
-          </p>
-        </div>
-        <div className="hero__panel">
-          <label htmlFor="search">Search catalog</label>
-          <input
-            id="search"
-            type="search"
-            placeholder="Search by title, brand or model"
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-          />
-          <p>
-            Explore our extensive selection of computer components and accessories.
-            {filterOptions.totalProducts > 0 && ` (${filterOptions.totalProducts} products available)`}
-          </p>
+    <div className="home-page stack-lg">
+      <section className="hero-banner card p-4 p-lg-5 overflow-hidden rounded-5">
+        <div className="row align-items-center g-4">
+          <div className="col-lg-6">
+            <span className="eyebrow">Premium hardware</span>
+            <h1 className="display-6 fw-bold">Build faster, game stronger, ship sooner.</h1>
+            <p className="lead text-muted mb-4">
+              Discover a premium catalog of PC components optimized for pro builders, gamers and system shops.
+            </p>
+            <div className="d-flex flex-column flex-sm-row gap-3">
+              <Link to="/catalog" className="btn btn-primary btn-lg">
+                Browse catalog
+              </Link>
+              <Link to="/cart" className="btn btn-outline-secondary btn-lg">
+                View cart
+              </Link>
+            </div>
+          </div>
+          <div className="col-lg-6">
+            <div className="hero-mockup p-4 rounded-5 bg-surface shadow-sm">
+              <h2 className="h5 mb-3">Shop by performance</h2>
+              <div className="d-flex flex-wrap gap-2 mb-3">
+                <span className="badge badge-pill">Gaming</span>
+                <span className="badge badge-pill">Creator</span>
+                <span className="badge badge-pill">Workstation</span>
+              </div>
+              <div className="row g-3">
+                <div className="col-6">
+                  <div className="feature-box p-3 rounded-4 bg-white bg-opacity-75">
+                    <strong>Fast shipping</strong>
+                    <p className="small text-muted mb-0">Next-day options available.</p>
+                  </div>
+                </div>
+                <div className="col-6">
+                  <div className="feature-box p-3 rounded-4 bg-white bg-opacity-75">
+                    <strong>Verified brands</strong>
+                    <p className="small text-muted mb-0">Trusted components only.</p>
+                  </div>
+                </div>
+                <div className="col-6">
+                  <div className="feature-box p-3 rounded-4 bg-white bg-opacity-75">
+                    <strong>Premium support</strong>
+                    <p className="small text-muted mb-0">Dedicated pro assistance.</p>
+                  </div>
+                </div>
+                <div className="col-6">
+                  <div className="feature-box p-3 rounded-4 bg-white bg-opacity-75">
+                    <strong>Smart filters</strong>
+                    <p className="small text-muted mb-0">Find parts in seconds.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* Mobile Filter Toggle */}
-      <button className="filter-toggle" onClick={() => setShowFilters(!showFilters)}>
-        {showFilters ? "Hide Filters" : "Show Filters"}
-      </button>
+      <section className="section-heading d-flex align-items-center justify-content-between gap-3">
+        <div>
+          <span className="eyebrow">Featured range</span>
+          <h2>Top picks for your next build</h2>
+        </div>
+        <Link to="/catalog" className="text-decoration-none text-primary">See full catalog →</Link>
+      </section>
 
-      {/* Filters Container */}
-      <div className={`filters-container ${showFilters ? "active" : ""}`}>
-        {/* Component Type Filter */}
-        {filterOptions.componentTypes.length > 0 && (
-          <section className="filter-section">
-            <h3>Component Type</h3>
-            <div className="filter-buttons">
-              <button
-                className={`filter-btn ${selectedComponent === "" ? "active" : ""}`}
-                onClick={() => setSelectedComponent("")}
-              >
-                All Types
-              </button>
-              {filterOptions.componentTypes.map((type) => (
-                <button
-                  key={type}
-                  className={`filter-btn ${selectedComponent === type ? "active" : ""}`}
-                  onClick={() => setSelectedComponent(type)}
-                >
-                  {type}
-                </button>
-              ))}
-            </div>
-          </section>
-        )}
-
-        {/* Brand Filter */}
-        {filterOptions.brands.length > 0 && (
-          <section className="filter-section">
-            <h3>Brand</h3>
-            <div className="filter-dropdown">
-              <select value={selectedBrand} onChange={(e) => setSelectedBrand(e.target.value)}>
-                <option value="">All Brands ({filterOptions.brands.length})</option>
-                {filterOptions.brands.map((brand) => (
-                  <option key={brand} value={brand}>
-                    {brand}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </section>
-        )}
-
-        {/* Price Range Filter */}
-        <section className="filter-section">
-          <h3>Price Range</h3>
-          <div className="price-filter">
-            <input
-              type="number"
-              placeholder={`Min (€${Math.floor(filterOptions.minPrice)})`}
-              value={minPrice}
-              onChange={(e) => setMinPrice(e.target.value)}
-              min={Math.floor(filterOptions.minPrice)}
-              max={Math.ceil(filterOptions.maxPrice)}
-            />
-            <span>-</span>
-            <input
-              type="number"
-              placeholder={`Max (€${Math.ceil(filterOptions.maxPrice)})`}
-              value={maxPrice}
-              onChange={(e) => setMaxPrice(e.target.value)}
-              min={Math.floor(filterOptions.minPrice)}
-              max={Math.ceil(filterOptions.maxPrice)}
-            />
-          </div>
-          <small className="price-hint">
-            Available: €{Math.floor(filterOptions.minPrice)} - €{Math.ceil(filterOptions.maxPrice)}
-          </small>
-        </section>
-
-        {/* Stock Filter */}
-        <section className="filter-section">
-          <h3>Availability</h3>
-          <div className="filter-radio">
-            <label>
-              <input
-                type="radio"
-                name="stock"
-                value="all"
-                checked={inStock === "all"}
-                onChange={(e) => setInStock(e.target.value)}
-              />
-              All Products
-            </label>
-            <label>
-              <input
-                type="radio"
-                name="stock"
-                value="true"
-                checked={inStock === "true"}
-                onChange={(e) => setInStock(e.target.value)}
-              />
-              In Stock
-            </label>
-            <label>
-              <input
-                type="radio"
-                name="stock"
-                value="false"
-                checked={inStock === "false"}
-                onChange={(e) => setInStock(e.target.value)}
-              />
-              Out of Stock
-            </label>
-          </div>
-        </section>
-
-        {/* Clear Filters Button */}
-        <button className="filter-clear" onClick={handleClearFilters}>
-          Clear All Filters
-        </button>
-      </div>
-
-      {loading ? <p className="loading">Loading products...</p> : null}
+      {loading ? <div className="text-center py-5">Loading products...</div> : null}
       {error ? <p className="error-text">{error}</p> : null}
 
-      <section className="product-grid">
-        {products.length > 0 ? (
-          products.map((product) => <ProductCard key={product._id} product={product} />)
-        ) : (
-          <p className="no-products">No products found. Try adjusting your search or filters.</p>
-        )}
+      <section className="product-grid row row-cols-1 row-cols-sm-2 row-cols-xl-3 g-4">
+        {featured.map((product) => (
+          <div key={product._id} className="col">
+            <ProductCard product={product} />
+          </div>
+        ))}
       </section>
     </div>
   );
