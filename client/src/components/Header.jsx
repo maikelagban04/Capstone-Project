@@ -2,10 +2,12 @@ import { Link, NavLink } from "react-router-dom";
 import { API_URL } from "../api/client";
 import { useAuth } from "../hooks/useAuth";
 import { useCart } from "../hooks/useCart";
+import { useTheme } from "../context/ThemeContext";
 
 const Header = () => {
   const { auth, isAdmin, logout } = useAuth();
   const { cartItems } = useCart();
+  const { theme, toggleTheme } = useTheme();
 
   return (
     <header className="topbar">
@@ -27,6 +29,14 @@ const Header = () => {
         </nav>
 
         <div className="topbar__actions">
+          <button
+            type="button"
+            className="button button--ghost theme-toggle"
+            onClick={toggleTheme}
+            aria-label="Toggle theme"
+          >
+            {theme === 'light' ? '🌙' : '☀️'}
+          </button>
           {auth ? (
             <>
               <span className="welcome">Hi, {auth.name}</span>
