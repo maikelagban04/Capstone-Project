@@ -24,7 +24,7 @@
   --surface: #121a24;
   --surface-alt: #182230;
   --text: #edf2f7;
-  --muted: #9aa8ba;
+  --muted: #b7c3d4;
   --line: #253242;
   --accent: #69a2ff;
   --accent-strong: #8eb7ff;
@@ -788,6 +788,19 @@ main.page-shell {
   gap: 0.85rem;
 }
 
+.auth-layout {
+  align-items: center;
+}
+
+.auth-layout__intro {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.auth-card {
+  border-radius: var(--radius-md);
+}
+
 .auth-divider {
   position: relative;
   display: flex;
@@ -816,11 +829,31 @@ main.page-shell {
 
 .auth-google {
   justify-content: center;
+  color: var(--text);
+  border-color: var(--line);
+  background: var(--surface-alt);
+}
+
+.auth-google:hover,
+.auth-google:focus {
+  color: var(--text);
+  border-color: var(--accent);
+  background: var(--accent-soft);
 }
 
 .auth-card__switch {
   margin: 0;
   color: var(--muted);
+}
+
+.auth-card__switch a {
+  color: var(--accent-strong);
+  font-weight: 700;
+}
+
+.auth-card__switch a:hover,
+.auth-card__switch a:focus {
+  color: var(--accent);
 }
 
 .empty-panel {
@@ -887,6 +920,11 @@ main.page-shell {
   border-color: var(--line);
   border-radius: var(--radius-sm);
   min-height: 48px;
+}
+
+.form-control::placeholder {
+  color: color-mix(in srgb, var(--muted) 82%, var(--text));
+  opacity: 1;
 }
 
 .form-control:focus,

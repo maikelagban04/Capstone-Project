@@ -24,9 +24,7 @@ const LoginPage = () => {
   return (
     <section className="auth-layout">
       <div className="auth-layout__intro">
-        <span className="section-kicker">Accesso</span>
-        <h1>Accedi al tuo account.</h1>
-        <p>Ordini, carrello e checkout restano in un flusso semplice e coerente.</p>
+        <h1>Accedi</h1>
       </div>
 
       <div className="auth-card">

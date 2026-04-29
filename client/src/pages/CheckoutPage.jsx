@@ -66,7 +66,7 @@ const CheckoutPage = () => {
       <section className="section-head">
         <div>
           <span className="section-kicker">Checkout</span>
-          <h1>Checkout lineare, chiaro e orientato alla conclusione ordine.</h1>
+          <h1>Checkout</h1>
         </div>
       </section>
 

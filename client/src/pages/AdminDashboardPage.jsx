@@ -158,7 +158,7 @@ const AdminDashboardPage = () => {
       <section className="section-head">
         <div>
           <span className="section-kicker">Admin</span>
-          <h1>Dashboard coerente con il model del database.</h1>
+          <h1>Dashboard</h1>
         </div>
       </section>
 

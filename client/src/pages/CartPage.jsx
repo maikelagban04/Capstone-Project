@@ -34,7 +34,7 @@ const CartPage = () => {
       <section className="section-head">
         <div>
           <span className="section-kicker">Carrello</span>
-          <h1>Riepilogo semplice, senza elementi inutili.</h1>
+          <h1>Carrello</h1>
         </div>
       </section>
 

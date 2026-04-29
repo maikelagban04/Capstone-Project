@@ -42,11 +42,10 @@ const HomePage = () => {
     <div className="page-stack">
       <section className="home-hero">
         <div className="home-hero__copy">
-          <span className="section-kicker">Hardware Store</span>
-          <h1>Componenti PC selezionati con una home finalmente essenziale.</h1>
+          <span className="section-kicker">KyronTech</span>
+          <h1>Componenti PC selezionati.</h1>
           <p>
-            KyronTech è pensato per chi vuole trovare subito CPU, GPU, RAM, storage e altri componenti senza
-            rumore visivo, senza blocchi inutili e con un percorso d’acquisto chiaro.
+            CPU, GPU, RAM, storage e hardware scelto per build da gaming e workstation.
           </p>
           <div className="hero__actions">
             <Link to="/catalog" className="btn btn-primary btn-shell btn-shell--primary">
@@ -80,7 +79,7 @@ const HomePage = () => {
       <section className="section-head">
         <div>
           <span className="section-kicker">Categorie</span>
-          <h2>Il catalogo è organizzato intorno ai veri tipi di prodotto.</h2>
+          <h2>Categorie principali.</h2>
         </div>
       </section>
 

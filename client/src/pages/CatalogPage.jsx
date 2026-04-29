@@ -82,7 +82,7 @@ const CatalogPage = () => {
       <section className="catalog-hero">
         <div>
           <span className="section-kicker">Catalogo</span>
-          <h1>Filtra l'hardware in modo rapido e leggibile.</h1>
+          <h1>Catalogo hardware</h1>
         </div>
         <div className="catalog-hero__search">
           <input

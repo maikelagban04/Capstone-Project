@@ -23,9 +23,7 @@ const RegisterPage = () => {
   return (
     <section className="auth-layout">
       <div className="auth-layout__intro">
-        <span className="section-kicker">Registrazione</span>
-        <h1>Crea il tuo account KyronTech.</h1>
-        <p>Registrazione rapida, checkout più veloce e gestione ordini senza passaggi inutili.</p>
+        <h1>Crea account</h1>
       </div>
 
       <div className="auth-card">
@@ -70,7 +68,7 @@ const RegisterPage = () => {
         </a>
 
         <p className="auth-card__switch">
-          Hai già un account? <Link to="/login">Accedi</Link>
+          Hai gia un account? <Link to="/login">Accedi</Link>
         </p>
       </div>
     </section>
