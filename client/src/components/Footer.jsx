@@ -1,45 +1,55 @@
 import { Link } from "react-router-dom";
+import { useTheme } from "../context/ThemeContext";
+import logoDark from "../assets/logo-dark.png";
+import logoLight from "../assets/logo-light.png";
 
 const Footer = () => {
+  const { theme } = useTheme();
+
   return (
-    <footer className="footer py-5">
-      <div className="page-shell footer-grid">
-        <div>
-          <Link to="/" className="footer-brand">
-            <span>DSP</span>
-            <strong>Dropship Store Pro</strong>
-          </Link>
-          <p>Premium hardware experience for builders, gamers and system integrators.</p>
+    <footer className="footer">
+      <div className="page-shell footer-shell">
+        <div className="footer-brand-block">
+          <img src={theme === "dark" ? logoDark : logoLight} alt="KyronTech" className="footer-logo" />
+          <p>
+            KyronTech e-commerce specializzato in componenti PC premium per gaming rig, workstation e build ad
+            alte prestazioni.
+          </p>
         </div>
 
         <div>
-          <h4>Quick links</h4>
+          <h4>Shop</h4>
           <ul className="footer-list">
-            <li><Link to="/catalog">Catalog</Link></li>
-            <li><Link to="/cart">Cart</Link></li>
-            <li><Link to="/profile">Account</Link></li>
+            <li><Link to="/catalog">Catalogo</Link></li>
+            <li><Link to="/cart">Carrello</Link></li>
+            <li><Link to="/checkout">Checkout</Link></li>
           </ul>
         </div>
 
         <div>
-          <h4>Support</h4>
+          <h4>Account</h4>
+          <ul className="footer-list">
+            <li><Link to="/login">Accedi</Link></li>
+            <li><Link to="/register">Registrati</Link></li>
+            <li><Link to="/orders">Ordini</Link></li>
+          </ul>
+        </div>
+
+        <div>
+          <h4>Supporto</h4>
           <ul className="footer-list">
             <li><a href="mailto:help@kyrontech.com">help@kyrontech.com</a></li>
             <li><a href="tel:+39000000000">+39 000 000 000</a></li>
-          </ul>
-        </div>
-
-        <div>
-          <h4>Company</h4>
-          <ul className="footer-list">
-            <li><Link to="/">About us</Link></li>
-            <li><a href="#">Terms</a></li>
-            <li><a href="#">Privacy</a></li>
+            <li>Spedizioni rapide in tutta Europa</li>
           </ul>
         </div>
       </div>
+
       <div className="footer-bottom">
-        <small>© {new Date().getFullYear()} Dropship Store Pro. Styled for premium performance.</small>
+        <div className="page-shell footer-bottom__inner">
+          <small>© {new Date().getFullYear()} KyronTech. Engineered for builders.</small>
+          <small>Design responsive light/dark ottimizzato per conversione.</small>
+        </div>
       </div>
     </footer>
   );

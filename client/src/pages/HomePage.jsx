@@ -3,11 +3,22 @@ import { Link } from "react-router-dom";
 import { apiRequest } from "../api/client";
 import ProductCard from "../components/ProductCard";
 
+const categoryHighlights = [
+  { title: "CPU e GPU", text: "Componenti flagship per gaming competitivo e workstation spinte." },
+  { title: "RAM e Storage", text: "Prestazioni rapide, latenza ridotta e affidabilità per ogni build." },
+  { title: "Motherboard e PSU", text: "Base solida per sistemi bilanciati, stabili e futuri upgrade." },
+];
+
+const trustHighlights = [
+  "Solo brand selezionati e componenti verificati",
+  "Filtri rapidi per compatibilità, stock e fascia prezzo",
+  "Esperienza d'acquisto fluida da mobile a desktop",
+];
+
 const HomePage = () => {
-  const [products, setProducts] = useState([]);
+  const [featured, setFeatured] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [featured, setFeatured] = useState([]);
 
   useEffect(() => {
     const loadFeatured = async () => {
@@ -25,81 +36,105 @@ const HomePage = () => {
   }, []);
 
   return (
-    <div className="home-page stack-lg">
-      <section className="hero-banner card p-4 p-lg-5 overflow-hidden rounded-5">
-        <div className="row align-items-center g-4">
-          <div className="col-lg-6">
-            <span className="eyebrow">Premium hardware</span>
-            <h1 className="display-6 fw-bold">Build faster, game stronger, ship sooner.</h1>
-            <p className="lead text-muted mb-4">
-              Discover a premium catalog of PC components optimized for pro builders, gamers and system shops.
-            </p>
-            <div className="d-flex flex-column flex-sm-row gap-3">
-              <Link to="/catalog" className="btn btn-primary btn-lg">
-                Browse catalog
-              </Link>
-              <Link to="/cart" className="btn btn-outline-secondary btn-lg">
-                View cart
-              </Link>
+    <div className="stack-2xl">
+      <section className="hero-premium">
+        <div className="hero-premium__content">
+          <span className="eyebrow">Hardware boutique</span>
+          <h1>Componenti PC premium progettati per build che devono stupire.</h1>
+          <p>
+            KyronTech unisce il feeling editoriale dei brand premium con la praticità di un ecommerce ottimizzato per
+            conversione, confronto prodotti e acquisti veloci.
+          </p>
+
+          <div className="hero-premium__actions">
+            <Link to="/catalog" className="btn btn-primary btn-lg btn-premium">
+              Esplora il catalogo
+            </Link>
+            <Link to="/cart" className="btn btn-outline-secondary btn-lg btn-premium-outline">
+              Vai al carrello
+            </Link>
+          </div>
+
+          <div className="hero-stats">
+            <div className="metric-card">
+              <strong>48h</strong>
+              <span>evasione media ordini</span>
+            </div>
+            <div className="metric-card">
+              <strong>Top brand</strong>
+              <span>selezione orientata a qualità e affidabilità</span>
+            </div>
+            <div className="metric-card">
+              <strong>Mobile first</strong>
+              <span>UX fluida anche durante checkout rapido</span>
             </div>
           </div>
-          <div className="col-lg-6">
-            <div className="hero-mockup p-4 rounded-5 bg-surface shadow-sm">
-              <h2 className="h5 mb-3">Shop by performance</h2>
-              <div className="d-flex flex-wrap gap-2 mb-3">
-                <span className="badge badge-pill">Gaming</span>
-                <span className="badge badge-pill">Creator</span>
-                <span className="badge badge-pill">Workstation</span>
-              </div>
-              <div className="row g-3">
-                <div className="col-6">
-                  <div className="feature-box p-3 rounded-4 bg-white bg-opacity-75">
-                    <strong>Fast shipping</strong>
-                    <p className="small text-muted mb-0">Next-day options available.</p>
-                  </div>
+        </div>
+
+        <div className="hero-premium__visual">
+          <div className="hero-visual-card glass-panel">
+            <div className="hero-visual-card__top">
+              <span className="status-dot" />
+              <span>Build intelligence</span>
+            </div>
+            <h2>Seleziona i componenti giusti più in fretta.</h2>
+            <div className="stack-lg">
+              {categoryHighlights.map((item) => (
+                <div key={item.title} className="hero-feature-row">
+                  <strong>{item.title}</strong>
+                  <p>{item.text}</p>
                 </div>
-                <div className="col-6">
-                  <div className="feature-box p-3 rounded-4 bg-white bg-opacity-75">
-                    <strong>Verified brands</strong>
-                    <p className="small text-muted mb-0">Trusted components only.</p>
-                  </div>
-                </div>
-                <div className="col-6">
-                  <div className="feature-box p-3 rounded-4 bg-white bg-opacity-75">
-                    <strong>Premium support</strong>
-                    <p className="small text-muted mb-0">Dedicated pro assistance.</p>
-                  </div>
-                </div>
-                <div className="col-6">
-                  <div className="feature-box p-3 rounded-4 bg-white bg-opacity-75">
-                    <strong>Smart filters</strong>
-                    <p className="small text-muted mb-0">Find parts in seconds.</p>
-                  </div>
-                </div>
-              </div>
+              ))}
             </div>
           </div>
         </div>
       </section>
 
-      <section className="section-heading d-flex align-items-center justify-content-between gap-3">
-        <div>
-          <span className="eyebrow">Featured range</span>
-          <h2>Top picks for your next build</h2>
-        </div>
-        <Link to="/catalog" className="text-decoration-none text-primary">See full catalog →</Link>
-      </section>
-
-      {loading ? <div className="text-center py-5">Loading products...</div> : null}
-      {error ? <p className="error-text">{error}</p> : null}
-
-      <section className="product-grid row row-cols-1 row-cols-sm-2 row-cols-xl-3 g-4">
-        {featured.map((product) => (
-          <div key={product._id} className="col">
-            <ProductCard product={product} />
-          </div>
+      <section className="trust-band">
+        {trustHighlights.map((item) => (
+          <article key={item} className="trust-band__item">
+            <span className="trust-band__icon">•</span>
+            <p>{item}</p>
+          </article>
         ))}
       </section>
+
+      <section className="section-head">
+        <div>
+          <span className="eyebrow">Categorie chiave</span>
+          <h2>Una UI costruita per decidere bene e comprare più velocemente.</h2>
+        </div>
+      </section>
+
+      <section className="spotlight-grid">
+        {categoryHighlights.map((item) => (
+          <article key={item.title} className="spotlight-card">
+            <h3>{item.title}</h3>
+            <p>{item.text}</p>
+          </article>
+        ))}
+      </section>
+
+      <section className="section-head">
+        <div>
+          <span className="eyebrow">Best seller</span>
+          <h2>Prodotti in evidenza per la tua prossima build.</h2>
+        </div>
+        <Link to="/catalog" className="section-link">
+          Vedi tutto il catalogo
+        </Link>
+      </section>
+
+      {loading ? <div className="empty-showcase">Caricamento prodotti in corso...</div> : null}
+      {error ? <p className="error-text">{error}</p> : null}
+
+      {!loading ? (
+        <section className="product-grid">
+          {featured.map((product) => (
+            <ProductCard key={product._id} product={product} />
+          ))}
+        </section>
+      ) : null}
     </div>
   );
 };

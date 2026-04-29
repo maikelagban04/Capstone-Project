@@ -28,32 +28,42 @@ const OrdersPage = () => {
   }, [auth?.token]);
 
   return (
-    <div className="stack-lg">
-      <div className="section-heading">
+    <div className="stack-2xl">
+      <section className="section-head">
         <div>
-          <span className="eyebrow">Orders</span>
-          <h1>Your order history</h1>
+          <span className="eyebrow">Ordini</span>
+          <h1>Storico ordini chiaro e leggibile in pochi secondi.</h1>
         </div>
-      </div>
+      </section>
 
-      {loading ? <p>Loading orders...</p> : null}
+      {loading ? <div className="empty-showcase">Caricamento ordini...</div> : null}
       {error ? <p className="error-text">{error}</p> : null}
 
-      <div className="stack-md">
+      {!loading && orders.length === 0 ? (
+        <div className="empty-showcase">Non ci sono ancora ordini associati a questo account.</div>
+      ) : null}
+
+      <div className="orders-grid">
         {orders.map((order) => (
-          <article key={order._id} className="card stack-sm">
-            <div className="split-row">
-              <strong>Order #{order._id.slice(-6).toUpperCase()}</strong>
-              <span className="pill">{order.status}</span>
+          <article key={order._id} className="card order-card-premium">
+            <div className="order-card-premium__header">
+              <div>
+                <small>Order ID</small>
+                <strong>#{order._id.slice(-6).toUpperCase()}</strong>
+              </div>
+              <span className={`status-badge status-badge--${order.status}`}>{order.status}</span>
             </div>
-            <p>Total: EUR {order.totalAmount.toFixed(2)}</p>
-            <div className="stack-xs">
+
+            <div className="summary-line">
+              <span>Totale</span>
+              <strong>€ {order.totalAmount.toFixed(2)}</strong>
+            </div>
+
+            <div className="stack-sm">
               {order.items.map((item) => (
-                <div key={`${order._id}-${item.product}`} className="split-row">
-                  <span>
-                    {item.title} x {item.quantity}
-                  </span>
-                  <strong>EUR {item.subtotal.toFixed(2)}</strong>
+                <div key={`${order._id}-${item.product}`} className="order-line">
+                  <span>{item.title} x {item.quantity}</span>
+                  <strong>€ {item.subtotal.toFixed(2)}</strong>
                 </div>
               ))}
             </div>

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import { apiRequest } from "../api/client";
 import { useCart } from "../hooks/useCart";
@@ -26,8 +26,18 @@ const ProductDetailPage = () => {
     loadProduct();
   }, [id]);
 
+  const specificationEntries = useMemo(
+    () => Object.entries(product?.specifications || {}).filter(([, value]) => value),
+    [product],
+  );
+
+  const compatibilityEntries = useMemo(
+    () => Object.entries(product?.compatibility || {}).filter(([, value]) => value),
+    [product],
+  );
+
   if (loading) {
-    return <p>Loading product...</p>;
+    return <div className="empty-showcase">Caricamento scheda prodotto...</div>;
   }
 
   if (error) {
@@ -35,148 +45,107 @@ const ProductDetailPage = () => {
   }
 
   if (!product) {
-    return <p>Product not found.</p>;
+    return <div className="empty-showcase">Prodotto non trovato.</div>;
   }
 
   return (
-    <section className="detail-layout card">
-      <img src={product.image} alt={product.title} className="detail-layout__image" />
-      <div className="stack-md">
-        <span className="pill">{product.componentType}</span>
-        <h1>{product.title}</h1>
-        <div className="product-header-info">
-          <p className="brand-model">
-            <strong>{product.brand}</strong> {product.model}
-          </p>
+    <div className="stack-2xl">
+      <section className="product-detail-layout">
+        <div className="product-gallery card">
+          <span className="product-chip">{product.componentType || product.category}</span>
+          <img src={product.image} alt={product.title} className="product-gallery__image" loading="lazy" />
         </div>
-        <p>{product.description}</p>
 
-        {/* Specifiche tecniche */}
-        {product.specifications && Object.keys(product.specifications).length > 0 && (
-          <div className="specifications-section">
-            <h2>Specifications</h2>
-            <dl className="specs-grid">
-              {product.specifications.cores && (
-                <>
-                  <dt>Cores:</dt>
-                  <dd>{product.specifications.cores}</dd>
-                </>
-              )}
-              {product.specifications.frequency && (
-                <>
-                  <dt>Frequency:</dt>
-                  <dd>{product.specifications.frequency}</dd>
-                </>
-              )}
-              {product.specifications.memory && (
-                <>
-                  <dt>Memory:</dt>
-                  <dd>{product.specifications.memory}</dd>
-                </>
-              )}
-              {product.specifications.capacity && (
-                <>
-                  <dt>Capacity:</dt>
-                  <dd>{product.specifications.capacity}</dd>
-                </>
-              )}
-              {product.specifications.speed && (
-                <>
-                  <dt>Speed:</dt>
-                  <dd>{product.specifications.speed}</dd>
-                </>
-              )}
-              {product.specifications.power && (
-                <>
-                  <dt>Power:</dt>
-                  <dd>{product.specifications.power}</dd>
-                </>
-              )}
-            </dl>
+        <div className="product-summary">
+          <div className="product-summary__intro">
+            <span className="eyebrow">Scheda prodotto</span>
+            <h1>{product.title}</h1>
+            <p className="product-summary__brand">{product.brand} {product.model ? `· ${product.model}` : ""}</p>
+            <p className="product-summary__description">{product.description}</p>
           </div>
-        )}
 
-        {/* Compatibilità */}
-        {product.compatibility && Object.keys(product.compatibility).length > 0 && (
-          <div className="compatibility-section">
-            <h2>Compatibility</h2>
-            <dl className="specs-grid">
-              {product.compatibility.socket && (
-                <>
-                  <dt>Socket:</dt>
-                  <dd>{product.compatibility.socket}</dd>
-                </>
-              )}
-              {product.compatibility.chipset && (
-                <>
-                  <dt>Chipset:</dt>
-                  <dd>{product.compatibility.chipset}</dd>
-                </>
-              )}
-              {product.compatibility.interface && (
-                <>
-                  <dt>Interface:</dt>
-                  <dd>{product.compatibility.interface}</dd>
-                </>
-              )}
-              {product.compatibility.formFactor && (
-                <>
-                  <dt>Form Factor:</dt>
-                  <dd>{product.compatibility.formFactor}</dd>
-                </>
-              )}
-              {product.compatibility.memoryType && (
-                <>
-                  <dt>Memory Type:</dt>
-                  <dd>{product.compatibility.memoryType}</dd>
-                </>
-              )}
-              {product.compatibility.wattage && (
-                <>
-                  <dt>Wattage:</dt>
-                  <dd>{product.compatibility.wattage}</dd>
-                </>
-              )}
-              {product.compatibility.tdp && (
-                <>
-                  <dt>TDP:</dt>
-                  <dd>{product.compatibility.tdp}</dd>
-                </>
-              )}
-            </dl>
-          </div>
-        )}
-
-        <div className="detail-metrics">
-          <div>
-            <span>Base price</span>
-            <strong>EUR {product.priceBase.toFixed(2)}</strong>
-          </div>
-          <div>
-            <span>Markup</span>
-            <strong>{product.markup}%</strong>
-          </div>
-          <div>
-            <span>Final price</span>
-            <strong>EUR {product.finalPrice.toFixed(2)}</strong>
-          </div>
-          {product.stock !== undefined && (
-            <div>
-              <span>In Stock</span>
-              <strong>{product.stock > 0 ? `${product.stock} units` : "Out of Stock"}</strong>
+          <div className="summary-metrics">
+            <div className="metric-card">
+              <span>Prezzo base</span>
+              <strong>€ {product.priceBase.toFixed(2)}</strong>
             </div>
-          )}
+            <div className="metric-card">
+              <span>Markup</span>
+              <strong>{product.markup}%</strong>
+            </div>
+            <div className="metric-card">
+              <span>Prezzo finale</span>
+              <strong>€ {product.finalPrice.toFixed(2)}</strong>
+            </div>
+            <div className="metric-card">
+              <span>Stock</span>
+              <strong>{product.stock > 0 ? `${product.stock} unità` : "Esaurito"}</strong>
+            </div>
+          </div>
+
+          <div className="purchase-panel">
+            <div>
+              <small>Disponibilità</small>
+              <strong className={product.inStock ? "text-success" : "text-danger"}>
+                {product.inStock ? "Pronto per la spedizione" : "Momentaneamente esaurito"}
+              </strong>
+            </div>
+            <button
+              type="button"
+              className="btn btn-primary btn-lg btn-premium"
+              onClick={() => addToCart(product)}
+              disabled={!product.inStock}
+            >
+              {product.inStock ? "Aggiungi al carrello" : "Non disponibile"}
+            </button>
+          </div>
         </div>
-        <button
-          type="button"
-          className="button"
-          onClick={() => addToCart(product)}
-          disabled={!product.inStock}
-        >
-          {product.inStock ? "Add to cart" : "Out of Stock"}
-        </button>
-      </div>
-    </section>
+      </section>
+
+      <section className="product-info-grid">
+        <article className="card info-panel">
+          <div className="section-head section-head--tight">
+            <div>
+              <span className="eyebrow">Specifiche</span>
+              <h2>Dettagli tecnici</h2>
+            </div>
+          </div>
+          {specificationEntries.length > 0 ? (
+            <dl className="spec-grid">
+              {specificationEntries.map(([key, value]) => (
+                <div key={key} className="spec-item">
+                  <dt>{key}</dt>
+                  <dd>{value}</dd>
+                </div>
+              ))}
+            </dl>
+          ) : (
+            <p className="text-muted mb-0">Nessuna specifica tecnica aggiuntiva disponibile.</p>
+          )}
+        </article>
+
+        <article className="card info-panel">
+          <div className="section-head section-head--tight">
+            <div>
+              <span className="eyebrow">Compatibilità</span>
+              <h2>Check rapido build</h2>
+            </div>
+          </div>
+          {compatibilityEntries.length > 0 ? (
+            <dl className="spec-grid">
+              {compatibilityEntries.map(([key, value]) => (
+                <div key={key} className="spec-item">
+                  <dt>{key}</dt>
+                  <dd>{value}</dd>
+                </div>
+              ))}
+            </dl>
+          ) : (
+            <p className="text-muted mb-0">Compatibilità specifica non indicata per questo prodotto.</p>
+          )}
+        </article>
+      </section>
+    </div>
   );
 };
 

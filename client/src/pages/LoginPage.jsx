@@ -23,52 +23,63 @@ const LoginPage = () => {
   };
 
   return (
-    <section className="auth-layout card p-4 p-md-5 rounded-5 shadow-sm">
-      <div className="mb-4">
-        <span className="eyebrow">Account access</span>
-        <h1 className="h3 mt-2">Welcome back</h1>
-        <p className="text-muted">Sign in to access your orders, cart and premium checkout flow.</p>
+    <section className="auth-page">
+      <div className="auth-page__panel">
+        <span className="eyebrow">Accesso account</span>
+        <h1>Accedi al tuo spazio KyronTech.</h1>
+        <p>
+          Ordini, carrello e checkout in un'unica esperienza elegante, veloce e ottimizzata per desktop e mobile.
+        </p>
+        <div className="trust-band trust-band--compact">
+          <article className="trust-band__item"><span className="trust-band__icon">•</span><p>Login classico o Google OAuth</p></article>
+          <article className="trust-band__item"><span className="trust-band__icon">•</span><p>Navigazione semplice e conversion-first</p></article>
+        </div>
       </div>
 
-      {error ? <div className="alert alert-danger">{error}</div> : null}
+      <div className="card auth-card-premium">
+        <div className="checkout-section-title">
+          <h2>Bentornato</h2>
+          <p>Inserisci le tue credenziali per continuare.</p>
+        </div>
 
-      <form className="row g-3" onSubmit={handleSubmit}>
-        <div className="col-12">
-          <label className="form-label">Email</label>
-          <input
-            type="email"
-            className="form-control"
-            placeholder="you@example.com"
-            value={form.email}
-            onChange={(event) => setForm({ ...form, email: event.target.value })}
-            required
-          />
-        </div>
-        <div className="col-12">
-          <label className="form-label">Password</label>
-          <input
-            type="password"
-            className="form-control"
-            placeholder="••••••••"
-            value={form.password}
-            onChange={(event) => setForm({ ...form, password: event.target.value })}
-            required
-          />
-        </div>
-        <div className="col-12 d-grid">
-          <button type="submit" className="btn btn-primary btn-lg" disabled={loading}>
-            {loading ? "Signing in..." : "Login"}
+        {error ? <div className="alert alert-danger">{error}</div> : null}
+
+        <form className="stack-md" onSubmit={handleSubmit}>
+          <div>
+            <label className="form-label">Email</label>
+            <input
+              type="email"
+              className="form-control"
+              placeholder="you@example.com"
+              value={form.email}
+              onChange={(event) => setForm({ ...form, email: event.target.value })}
+              required
+            />
+          </div>
+          <div>
+            <label className="form-label">Password</label>
+            <input
+              type="password"
+              className="form-control"
+              placeholder="Password"
+              value={form.password}
+              onChange={(event) => setForm({ ...form, password: event.target.value })}
+              required
+            />
+          </div>
+          <button type="submit" className="btn btn-primary btn-lg btn-premium" disabled={loading}>
+            {loading ? "Accesso in corso..." : "Accedi"}
           </button>
-        </div>
-      </form>
+        </form>
 
-      <a href={`${API_URL}/auth/google`} className="btn btn-outline-secondary w-100 mt-3">
-        Continue with Google
-      </a>
+        <a href={`${API_URL}/auth/google`} className="btn btn-outline-secondary btn-premium-outline w-100 mt-3">
+          Continua con Google
+        </a>
 
-      <p className="text-center text-muted mt-4 mb-0">
-        Need an account? <Link to="/register">Register here</Link>
-      </p>
+        <p className="text-center text-muted mt-4 mb-0">
+          Non hai un account? <Link to="/register">Registrati ora</Link>
+        </p>
+      </div>
     </section>
   );
 };

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { apiRequest } from "../api/client";
 import { useAuth } from "../hooks/useAuth";
 
@@ -38,6 +38,15 @@ const AdminDashboardPage = () => {
   const authHeaders = {
     Authorization: `Bearer ${auth.token}`,
   };
+
+  const dashboardStats = useMemo(
+    () => [
+      { label: "Prodotti", value: products.length },
+      { label: "Ordini", value: orders.length },
+      { label: "Pending", value: orders.filter((order) => order.status === "pending").length },
+    ],
+    [products, orders],
+  );
 
   const loadDashboardData = async () => {
     const data = await fetchDashboardData(auth.token);
@@ -82,7 +91,7 @@ const AdminDashboardPage = () => {
       });
 
       resetForm();
-      setMessage("Product saved successfully.");
+      setMessage("Prodotto salvato correttamente.");
       await loadDashboardData();
     } catch (error) {
       setMessage(error.message);
@@ -107,7 +116,7 @@ const AdminDashboardPage = () => {
         method: "DELETE",
         headers: authHeaders,
       });
-      setMessage("Product deleted successfully.");
+      setMessage("Prodotto eliminato.");
       await loadDashboardData();
     } catch (error) {
       setMessage(error.message);
@@ -121,7 +130,7 @@ const AdminDashboardPage = () => {
         headers: authHeaders,
         body: JSON.stringify({ status }),
       });
-      setMessage("Order status updated.");
+      setMessage("Stato ordine aggiornato.");
       await loadDashboardData();
     } catch (error) {
       setMessage(error.message);
@@ -129,112 +138,157 @@ const AdminDashboardPage = () => {
   };
 
   return (
-    <div className="admin-layout">
-      <section className="card stack-md">
-        <div className="section-heading">
-          <div>
-            <span className="eyebrow">Admin</span>
-            <h1>Product management</h1>
-          </div>
-        </div>
-        {message ? <p className="error-text">{message}</p> : null}
-
-        <form className="form-grid" onSubmit={handleProductSubmit}>
-          <input
-            type="text"
-            placeholder="Title"
-            value={form.title}
-            onChange={(event) => setForm({ ...form, title: event.target.value })}
-            required
-          />
-          <input
-            type="text"
-            placeholder="Category"
-            value={form.category}
-            onChange={(event) => setForm({ ...form, category: event.target.value })}
-            required
-          />
-          <input
-            type="number"
-            step="0.01"
-            placeholder="Base price"
-            value={form.priceBase}
-            onChange={(event) => setForm({ ...form, priceBase: event.target.value })}
-            required
-          />
-          <input
-            type="number"
-            step="0.01"
-            placeholder="Markup %"
-            value={form.markup}
-            onChange={(event) => setForm({ ...form, markup: event.target.value })}
-            required
-          />
-          <input
-            type="url"
-            placeholder="Image URL"
-            value={form.image}
-            onChange={(event) => setForm({ ...form, image: event.target.value })}
-            required
-          />
-          <textarea
-            placeholder="Description"
-            value={form.description}
-            onChange={(event) => setForm({ ...form, description: event.target.value })}
-            required
-          />
-          <div className="button-row">
-            <button type="submit" className="button">
-              {editingId ? "Update product" : "Create product"}
-            </button>
-            {editingId ? (
-              <button type="button" className="button button--ghost" onClick={resetForm}>
-                Cancel edit
-              </button>
-            ) : null}
-          </div>
-        </form>
-
-        <div className="stack-sm">
-          {products.map((product) => (
-            <article key={product._id} className="card split-card">
-              <div>
-                <strong>{product.title}</strong>
-                <p>
-                  EUR {product.finalPrice.toFixed(2)} | {product.category}
-                </p>
-              </div>
-              <div className="button-row">
-                <button type="button" className="button button--ghost" onClick={() => handleEdit(product)}>
-                  Edit
-                </button>
-                <button type="button" className="button" onClick={() => handleDelete(product._id)}>
-                  Delete
-                </button>
-              </div>
-            </article>
-          ))}
+    <div className="stack-2xl">
+      <section className="section-head">
+        <div>
+          <span className="eyebrow">Dashboard admin</span>
+          <h1>Gestione prodotti e ordini con layout più chiaro e operativo.</h1>
         </div>
       </section>
 
-      <section className="card stack-md">
-        <div className="section-heading">
-          <div>
-            <span className="eyebrow">Operations</span>
-            <h2>Order management</h2>
+      <section className="admin-stat-grid">
+        {dashboardStats.map((item) => (
+          <article key={item.label} className="metric-card">
+            <span>{item.label}</span>
+            <strong>{item.value}</strong>
+          </article>
+        ))}
+      </section>
+
+      {message ? <div className="alert alert-info">{message}</div> : null}
+
+      <section className="dashboard-grid">
+        <article className="card admin-form-panel">
+          <div className="checkout-section-title">
+            <h2>{editingId ? "Modifica prodotto" : "Nuovo prodotto"}</h2>
+            <p>La struttura rimane compatibile con il backend esistente.</p>
           </div>
+
+          <form className="row g-3" onSubmit={handleProductSubmit}>
+            <div className="col-md-6">
+              <label className="form-label">Titolo</label>
+              <input
+                type="text"
+                className="form-control"
+                value={form.title}
+                onChange={(event) => setForm({ ...form, title: event.target.value })}
+                required
+              />
+            </div>
+            <div className="col-md-6">
+              <label className="form-label">Categoria</label>
+              <input
+                type="text"
+                className="form-control"
+                value={form.category}
+                onChange={(event) => setForm({ ...form, category: event.target.value })}
+                required
+              />
+            </div>
+            <div className="col-md-6">
+              <label className="form-label">Prezzo base</label>
+              <input
+                type="number"
+                step="0.01"
+                className="form-control"
+                value={form.priceBase}
+                onChange={(event) => setForm({ ...form, priceBase: event.target.value })}
+                required
+              />
+            </div>
+            <div className="col-md-6">
+              <label className="form-label">Markup %</label>
+              <input
+                type="number"
+                step="0.01"
+                className="form-control"
+                value={form.markup}
+                onChange={(event) => setForm({ ...form, markup: event.target.value })}
+                required
+              />
+            </div>
+            <div className="col-12">
+              <label className="form-label">Immagine URL</label>
+              <input
+                type="url"
+                className="form-control"
+                value={form.image}
+                onChange={(event) => setForm({ ...form, image: event.target.value })}
+                required
+              />
+            </div>
+            <div className="col-12">
+              <label className="form-label">Descrizione</label>
+              <textarea
+                className="form-control"
+                value={form.description}
+                onChange={(event) => setForm({ ...form, description: event.target.value })}
+                required
+              />
+            </div>
+            <div className="col-12 d-flex gap-2 flex-wrap">
+              <button type="submit" className="btn btn-primary btn-premium">
+                {editingId ? "Aggiorna prodotto" : "Crea prodotto"}
+              </button>
+              {editingId ? (
+                <button type="button" className="btn btn-outline-secondary btn-premium-outline" onClick={resetForm}>
+                  Annulla modifica
+                </button>
+              ) : null}
+            </div>
+          </form>
+        </article>
+
+        <article className="card admin-list-panel">
+          <div className="checkout-section-title">
+            <h2>Prodotti</h2>
+            <p>Vista sintetica dei prodotti già pubblicati.</p>
+          </div>
+
+          <div className="stack-sm">
+            {products.map((product) => (
+              <div key={product._id} className="admin-row">
+                <div>
+                  <strong>{product.title}</strong>
+                  <p>€ {product.finalPrice.toFixed(2)} · {product.category}</p>
+                </div>
+                <div className="d-flex gap-2 flex-wrap">
+                  <button type="button" className="btn btn-outline-secondary btn-sm btn-premium-outline" onClick={() => handleEdit(product)}>
+                    Modifica
+                  </button>
+                  <button type="button" className="btn btn-primary btn-sm btn-premium" onClick={() => handleDelete(product._id)}>
+                    Elimina
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </article>
+      </section>
+
+      <section className="card admin-orders-panel">
+        <div className="checkout-section-title">
+          <h2>Ordini</h2>
+          <p>Controllo stato ordini con interazione semplice e leggibile.</p>
         </div>
 
-        <div className="stack-sm">
+        <div className="orders-grid">
           {orders.map((order) => (
-            <article key={order._id} className="card stack-sm">
-              <div className="split-row">
-                <strong>{order.user?.name || "Customer"}</strong>
-                <span className="pill">{order.status}</span>
+            <article key={order._id} className="order-card-premium">
+              <div className="order-card-premium__header">
+                <div>
+                  <small>Cliente</small>
+                  <strong>{order.user?.name || "Customer"}</strong>
+                </div>
+                <span className={`status-badge status-badge--${order.status}`}>{order.status}</span>
               </div>
-              <p>{order.user?.email}</p>
-              <p>Total: EUR {order.totalAmount.toFixed(2)}</p>
+              <p className="text-muted">{order.user?.email}</p>
+              <div className="summary-line">
+                <span>Totale</span>
+                <strong>€ {order.totalAmount.toFixed(2)}</strong>
+              </div>
               <select
+                className="form-select"
                 value={order.status}
                 onChange={(event) => handleStatusChange(order._id, event.target.value)}
               >

@@ -1,10 +1,22 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { apiRequest } from "../api/client";
 import ProductCard from "../components/ProductCard";
 
+const stockOptions = [
+  { label: "Tutti", value: "all" },
+  { label: "Disponibili", value: "true" },
+  { label: "Esauriti", value: "false" },
+];
+
 const CatalogPage = () => {
   const [products, setProducts] = useState([]);
-  const [filterOptions, setFilterOptions] = useState({ brands: [], componentTypes: [], minPrice: 0, maxPrice: 1000, totalProducts: 0 });
+  const [filterOptions, setFilterOptions] = useState({
+    brands: [],
+    componentTypes: [],
+    minPrice: 0,
+    maxPrice: 1000,
+    totalProducts: 0,
+  });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
@@ -20,8 +32,8 @@ const CatalogPage = () => {
       try {
         const data = await apiRequest("/products/filters");
         setFilterOptions(data);
-      } catch (err) {
-        console.error(err);
+      } catch (requestError) {
+        console.error(requestError);
       }
     };
 
@@ -39,8 +51,10 @@ const CatalogPage = () => {
         if (minPrice) params.append("minPrice", minPrice);
         if (maxPrice) params.append("maxPrice", maxPrice);
         if (inStock !== "all") params.append("inStock", inStock);
+
         const query = params.toString() ? `?${params.toString()}` : "";
         const data = await apiRequest(`/products${query}`);
+
         setProducts(data);
         setError("");
       } catch (requestError) {
@@ -53,6 +67,11 @@ const CatalogPage = () => {
     loadProducts();
   }, [search, selectedComponent, selectedBrand, minPrice, maxPrice, inStock]);
 
+  const activeFilters = useMemo(
+    () => [selectedComponent, selectedBrand, minPrice, maxPrice, inStock !== "all" ? inStock : ""].filter(Boolean).length,
+    [selectedBrand, selectedComponent, minPrice, maxPrice, inStock],
+  );
+
   const handleClearFilters = () => {
     setSearch("");
     setSelectedComponent("");
@@ -63,149 +82,152 @@ const CatalogPage = () => {
   };
 
   return (
-    <div className="catalog-page stack-lg">
-      <section className="catalog-hero card p-4 p-lg-5">
-        <div className="row align-items-center g-4">
-          <div className="col-lg-7">
-            <span className="eyebrow">Catalog</span>
-            <h1>Browse premium PC components with confidence</h1>
-            <p className="lead text-muted">
-              Search by brand, type, price and availability. Every product is optimized for fast delivery and high compatibility.
-            </p>
-          </div>
-          <div className="col-lg-5">
-            <div className="search-panel p-4 rounded-4 bg-surface shadow-sm">
-              <label htmlFor="catalog-search" className="form-label text-uppercase small text-muted">
-                Search catalog
-              </label>
-              <div className="input-group mb-3">
-                <span className="input-group-text bg-transparent border-0 text-muted">🔎</span>
-                <input
-                  id="catalog-search"
-                  type="search"
-                  className="form-control border-0 bg-transparent"
-                  placeholder="Search by title, brand or model"
-                  value={search}
-                  onChange={(event) => setSearch(event.target.value)}
-                />
-              </div>
-              <p className="mb-0 text-secondary">
-                {filterOptions.totalProducts} products available — refined for performance builders.
-              </p>
-            </div>
+    <div className="stack-2xl">
+      <section className="catalog-hero">
+        <div className="catalog-hero__content">
+          <span className="eyebrow">Catalogo premium</span>
+          <h1>Trova componenti PC con un'esperienza di filtro davvero moderna.</h1>
+          <p>
+            Ricerca veloce, selezione per brand e component type, controllo stock e fascia prezzo: tutto ottimizzato
+            per aiutarti a comprare meglio.
+          </p>
+        </div>
+
+        <div className="catalog-search-card glass-panel">
+          <label htmlFor="catalog-search" className="form-label">Cerca nel catalogo</label>
+          <input
+            id="catalog-search"
+            type="search"
+            className="form-control"
+            placeholder="CPU, GPU, RAM, brand o modello"
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+          />
+          <div className="catalog-search-card__meta">
+            <span>{filterOptions.totalProducts} prodotti in archivio</span>
+            <span>{products.length} risultati visibili</span>
           </div>
         </div>
       </section>
 
-      <section className="filter-panel card p-4">
-        <div className="d-flex align-items-center justify-content-between flex-column flex-md-row gap-3">
-          <div>
-            <h2 className="h5 mb-1">Refine results</h2>
-            <p className="text-muted mb-0">Advanced filters for fast product selection.</p>
-          </div>
-          <div className="d-flex gap-2">
-            <button type="button" className="btn btn-outline-primary btn-sm" onClick={() => setShowFilters((prev) => !prev)}>
-              {showFilters ? "Hide filters" : "Show filters"}
-            </button>
-            <button type="button" className="btn btn-soft-secondary btn-sm" onClick={handleClearFilters}>
-              Clear all
+      <section className="catalog-layout">
+        <aside className={`catalog-sidebar ${showFilters ? "is-open" : ""}`}>
+          <div className="catalog-sidebar__header">
+            <div>
+              <h2>Filtri</h2>
+              <p>{activeFilters} attivi</p>
+            </div>
+            <button type="button" className="btn btn-sm btn-outline-secondary btn-premium-outline" onClick={handleClearFilters}>
+              Reset
             </button>
           </div>
-        </div>
 
-        <div className={`row g-3 mt-3 ${showFilters ? "d-flex" : "d-none d-md-flex"}`}>
-          <div className="col-md-4">
-            <div className="filter-block p-3 rounded-4 bg-surface">
-              <h3 className="h6 text-uppercase text-muted mb-3">Component type</h3>
-              <div className="d-flex flex-wrap gap-2">
-                <button className={`btn btn-sm ${selectedComponent === "" ? "btn-primary" : "btn-outline-secondary"}`} onClick={() => setSelectedComponent("")}>
-                  All types
+          <div className="filter-group">
+            <h3>Tipo componente</h3>
+            <div className="filter-chip-list">
+              <button
+                type="button"
+                className={`filter-chip ${selectedComponent === "" ? "is-active" : ""}`}
+                onClick={() => setSelectedComponent("")}
+              >
+                Tutti
+              </button>
+              {filterOptions.componentTypes.map((type) => (
+                <button
+                  key={type}
+                  type="button"
+                  className={`filter-chip ${selectedComponent === type ? "is-active" : ""}`}
+                  onClick={() => setSelectedComponent(type)}
+                >
+                  {type}
                 </button>
-                {filterOptions.componentTypes.map((type) => (
-                  <button
-                    key={type}
-                    className={`btn btn-sm ${selectedComponent === type ? "btn-primary" : "btn-outline-secondary"}`}
-                    onClick={() => setSelectedComponent(type)}
-                  >
-                    {type}
-                  </button>
-                ))}
-              </div>
+              ))}
             </div>
           </div>
-          <div className="col-md-4">
-            <div className="filter-block p-3 rounded-4 bg-surface">
-              <h3 className="h6 text-uppercase text-muted mb-3">Brand</h3>
-              <select className="form-select" value={selectedBrand} onChange={(e) => setSelectedBrand(e.target.value)}>
-                <option value="">All Brands</option>
-                {filterOptions.brands.map((brand) => (
-                  <option key={brand} value={brand}>{brand}</option>
-                ))}
-              </select>
-            </div>
-          </div>
-          <div className="col-md-4">
-            <div className="filter-block p-3 rounded-4 bg-surface">
-              <h3 className="h6 text-uppercase text-muted mb-3">Availability</h3>
-              <div className="d-flex gap-2 flex-wrap">
-                {['all', 'true', 'false'].map((value) => (
-                  <button
-                    key={value}
-                    type="button"
-                    className={`btn btn-sm ${inStock === value ? "btn-primary" : "btn-outline-secondary"}`}
-                    onClick={() => setInStock(value)}
-                  >
-                    {value === 'all' ? 'All' : value === 'true' ? 'In stock' : 'Out of stock'}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
 
-        <div className="row g-3 mt-3">
-          <div className="col-md-6">
-            <label className="form-label text-muted">Min price</label>
-            <input
-              type="number"
-              className="form-control"
-              placeholder={`€${Math.floor(filterOptions.minPrice)}`}
-              value={minPrice}
-              onChange={(e) => setMinPrice(e.target.value)}
-              min={Math.floor(filterOptions.minPrice)}
-              max={Math.ceil(filterOptions.maxPrice)}
-            />
+          <div className="filter-group">
+            <h3>Brand</h3>
+            <select className="form-select" value={selectedBrand} onChange={(event) => setSelectedBrand(event.target.value)}>
+              <option value="">Tutti i brand</option>
+              {filterOptions.brands.map((brand) => (
+                <option key={brand} value={brand}>
+                  {brand}
+                </option>
+              ))}
+            </select>
           </div>
-          <div className="col-md-6">
-            <label className="form-label text-muted">Max price</label>
-            <input
-              type="number"
-              className="form-control"
-              placeholder={`€${Math.ceil(filterOptions.maxPrice)}`}
-              value={maxPrice}
-              onChange={(e) => setMaxPrice(e.target.value)}
-              min={Math.floor(filterOptions.minPrice)}
-              max={Math.ceil(filterOptions.maxPrice)}
-            />
-          </div>
-        </div>
-      </section>
 
-      {loading ? <div className="text-center py-5">Loading products...</div> : null}
-      {error ? <p className="error-text">{error}</p> : null}
-
-      <section className="product-grid row row-cols-1 row-cols-sm-2 row-cols-xl-3 g-4">
-        {products.length > 0 ? (
-          products.map((product) => (
-            <div key={product._id} className="col">
-              <ProductCard product={product} />
+          <div className="filter-group">
+            <h3>Prezzo</h3>
+            <div className="price-grid">
+              <input
+                type="number"
+                className="form-control"
+                placeholder={`Da €${Math.floor(filterOptions.minPrice)}`}
+                value={minPrice}
+                min={Math.floor(filterOptions.minPrice)}
+                max={Math.ceil(filterOptions.maxPrice)}
+                onChange={(event) => setMinPrice(event.target.value)}
+              />
+              <input
+                type="number"
+                className="form-control"
+                placeholder={`A €${Math.ceil(filterOptions.maxPrice)}`}
+                value={maxPrice}
+                min={Math.floor(filterOptions.minPrice)}
+                max={Math.ceil(filterOptions.maxPrice)}
+                onChange={(event) => setMaxPrice(event.target.value)}
+              />
             </div>
-          ))
-        ) : (
-          <div className="col-12">
-            <div className="card p-4 text-center text-muted">No products found. Adjust your filters to continue.</div>
           </div>
-        )}
+
+          <div className="filter-group">
+            <h3>Disponibilità</h3>
+            <div className="filter-chip-list">
+              {stockOptions.map((option) => (
+                <button
+                  key={option.value}
+                  type="button"
+                  className={`filter-chip ${inStock === option.value ? "is-active" : ""}`}
+                  onClick={() => setInStock(option.value)}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </aside>
+
+        <section className="catalog-results">
+          <div className="catalog-results__toolbar">
+            <div>
+              <span className="eyebrow">Risultati</span>
+              <h2>{products.length} prodotti selezionati</h2>
+            </div>
+            <button
+              type="button"
+              className="btn btn-outline-secondary btn-premium-outline d-lg-none"
+              onClick={() => setShowFilters((current) => !current)}
+            >
+              {showFilters ? "Chiudi filtri" : "Apri filtri"}
+            </button>
+          </div>
+
+          {loading ? <div className="empty-showcase">Sto caricando il catalogo...</div> : null}
+          {error ? <p className="error-text">{error}</p> : null}
+
+          {!loading && products.length === 0 ? (
+            <div className="empty-showcase">Nessun prodotto trovato. Prova a cambiare filtri o ricerca.</div>
+          ) : null}
+
+          {!loading && products.length > 0 ? (
+            <div className="product-grid">
+              {products.map((product) => (
+                <ProductCard key={product._id} product={product} />
+              ))}
+            </div>
+          ) : null}
+        </section>
       </section>
     </div>
   );
