@@ -1,31 +1,27 @@
 import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { apiRequest } from "../api/client";
 import ProductCard from "../components/ProductCard";
 
-const stockOptions = [
-  { label: "Tutti", value: "all" },
-  { label: "Disponibili", value: "true" },
-  { label: "Esauriti", value: "false" },
-];
-
 const CatalogPage = () => {
+  const [searchParams] = useSearchParams();
   const [products, setProducts] = useState([]);
   const [filterOptions, setFilterOptions] = useState({
     brands: [],
     componentTypes: [],
     minPrice: 0,
-    maxPrice: 1000,
+    maxPrice: 0,
     totalProducts: 0,
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
-  const [selectedComponent, setSelectedComponent] = useState("");
+  const [selectedComponent, setSelectedComponent] = useState(searchParams.get("componentType") || "");
   const [selectedBrand, setSelectedBrand] = useState("");
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
   const [inStock, setInStock] = useState("all");
-  const [showFilters, setShowFilters] = useState(false);
+  const [filtersOpen, setFiltersOpen] = useState(false);
 
   useEffect(() => {
     const loadFilterOptions = async () => {
@@ -45,6 +41,7 @@ const CatalogPage = () => {
       try {
         setLoading(true);
         const params = new URLSearchParams();
+
         if (search) params.append("search", search);
         if (selectedComponent) params.append("componentType", selectedComponent);
         if (selectedBrand) params.append("brand", selectedBrand);
@@ -54,7 +51,6 @@ const CatalogPage = () => {
 
         const query = params.toString() ? `?${params.toString()}` : "";
         const data = await apiRequest(`/products${query}`);
-
         setProducts(data);
         setError("");
       } catch (requestError) {
@@ -72,7 +68,7 @@ const CatalogPage = () => {
     [selectedBrand, selectedComponent, minPrice, maxPrice, inStock],
   );
 
-  const handleClearFilters = () => {
+  const clearFilters = () => {
     setSearch("");
     setSelectedComponent("");
     setSelectedBrand("");
@@ -82,61 +78,47 @@ const CatalogPage = () => {
   };
 
   return (
-    <div className="stack-2xl">
+    <div className="page-stack">
       <section className="catalog-hero">
-        <div className="catalog-hero__content">
-          <span className="eyebrow">Catalogo premium</span>
-          <h1>Trova componenti PC con un'esperienza di filtro davvero moderna.</h1>
-          <p>
-            Ricerca veloce, selezione per brand e component type, controllo stock e fascia prezzo: tutto ottimizzato
-            per aiutarti a comprare meglio.
-          </p>
+        <div>
+          <span className="section-kicker">Catalogo</span>
+          <h1>Filtra l'hardware in modo rapido e leggibile.</h1>
         </div>
-
-        <div className="catalog-search-card glass-panel">
-          <label htmlFor="catalog-search" className="form-label">Cerca nel catalogo</label>
+        <div className="catalog-hero__search">
           <input
-            id="catalog-search"
             type="search"
             className="form-control"
-            placeholder="CPU, GPU, RAM, brand o modello"
+            placeholder="Cerca per titolo, brand o modello"
             value={search}
             onChange={(event) => setSearch(event.target.value)}
           />
-          <div className="catalog-search-card__meta">
-            <span>{filterOptions.totalProducts} prodotti in archivio</span>
-            <span>{products.length} risultati visibili</span>
-          </div>
+          <span>{products.length} risultati</span>
         </div>
       </section>
 
       <section className="catalog-layout">
-        <aside className={`catalog-sidebar ${showFilters ? "is-open" : ""}`}>
-          <div className="catalog-sidebar__header">
+        <aside className={`catalog-sidebar ${filtersOpen ? "is-open" : ""}`}>
+          <div className="catalog-sidebar__head">
             <div>
-              <h2>Filtri</h2>
-              <p>{activeFilters} attivi</p>
+              <strong>Filtri</strong>
+              <span>{activeFilters} attivi</span>
             </div>
-            <button type="button" className="btn btn-sm btn-outline-secondary btn-premium-outline" onClick={handleClearFilters}>
+            <button type="button" className="btn btn-outline-secondary btn-shell" onClick={clearFilters}>
               Reset
             </button>
           </div>
 
           <div className="filter-group">
-            <h3>Tipo componente</h3>
-            <div className="filter-chip-list">
-              <button
-                type="button"
-                className={`filter-chip ${selectedComponent === "" ? "is-active" : ""}`}
-                onClick={() => setSelectedComponent("")}
-              >
+            <label>Tipo componente</label>
+            <div className="chip-row">
+              <button type="button" className={`chip ${selectedComponent === "" ? "is-active" : ""}`} onClick={() => setSelectedComponent("")}>
                 Tutti
               </button>
               {filterOptions.componentTypes.map((type) => (
                 <button
                   key={type}
                   type="button"
-                  className={`filter-chip ${selectedComponent === type ? "is-active" : ""}`}
+                  className={`chip ${selectedComponent === type ? "is-active" : ""}`}
                   onClick={() => setSelectedComponent(type)}
                 >
                   {type}
@@ -146,8 +128,13 @@ const CatalogPage = () => {
           </div>
 
           <div className="filter-group">
-            <h3>Brand</h3>
-            <select className="form-select" value={selectedBrand} onChange={(event) => setSelectedBrand(event.target.value)}>
+            <label htmlFor="brand-filter">Brand</label>
+            <select
+              id="brand-filter"
+              className="form-select"
+              value={selectedBrand}
+              onChange={(event) => setSelectedBrand(event.target.value)}
+            >
               <option value="">Tutti i brand</option>
               {filterOptions.brands.map((brand) => (
                 <option key={brand} value={brand}>
@@ -158,76 +145,73 @@ const CatalogPage = () => {
           </div>
 
           <div className="filter-group">
-            <h3>Prezzo</h3>
-            <div className="price-grid">
+            <label>Prezzo</label>
+            <div className="price-row">
               <input
                 type="number"
                 className="form-control"
-                placeholder={`Da €${Math.floor(filterOptions.minPrice)}`}
+                placeholder={`Da ${Math.floor(filterOptions.minPrice)}`}
                 value={minPrice}
-                min={Math.floor(filterOptions.minPrice)}
-                max={Math.ceil(filterOptions.maxPrice)}
                 onChange={(event) => setMinPrice(event.target.value)}
               />
               <input
                 type="number"
                 className="form-control"
-                placeholder={`A €${Math.ceil(filterOptions.maxPrice)}`}
+                placeholder={`A ${Math.ceil(filterOptions.maxPrice)}`}
                 value={maxPrice}
-                min={Math.floor(filterOptions.minPrice)}
-                max={Math.ceil(filterOptions.maxPrice)}
                 onChange={(event) => setMaxPrice(event.target.value)}
               />
             </div>
           </div>
 
           <div className="filter-group">
-            <h3>Disponibilità</h3>
-            <div className="filter-chip-list">
-              {stockOptions.map((option) => (
+            <label>Disponibilità</label>
+            <div className="chip-row">
+              {[
+                ["all", "Tutti"],
+                ["true", "Disponibili"],
+                ["false", "Esauriti"],
+              ].map(([value, label]) => (
                 <button
-                  key={option.value}
+                  key={value}
                   type="button"
-                  className={`filter-chip ${inStock === option.value ? "is-active" : ""}`}
-                  onClick={() => setInStock(option.value)}
+                  className={`chip ${inStock === value ? "is-active" : ""}`}
+                  onClick={() => setInStock(value)}
                 >
-                  {option.label}
+                  {label}
                 </button>
               ))}
             </div>
           </div>
         </aside>
 
-        <section className="catalog-results">
-          <div className="catalog-results__toolbar">
+        <div className="catalog-content">
+          <div className="catalog-toolbar">
             <div>
-              <span className="eyebrow">Risultati</span>
-              <h2>{products.length} prodotti selezionati</h2>
+              <strong>Catalogo hardware</strong>
+              <span>{filterOptions.totalProducts} prodotti nel database</span>
             </div>
             <button
               type="button"
-              className="btn btn-outline-secondary btn-premium-outline d-lg-none"
-              onClick={() => setShowFilters((current) => !current)}
+              className="btn btn-outline-secondary btn-shell d-lg-none"
+              onClick={() => setFiltersOpen((current) => !current)}
             >
-              {showFilters ? "Chiudi filtri" : "Apri filtri"}
+              {filtersOpen ? "Chiudi filtri" : "Apri filtri"}
             </button>
           </div>
 
-          {loading ? <div className="empty-showcase">Sto caricando il catalogo...</div> : null}
+          {loading ? <div className="empty-panel">Sto caricando il catalogo...</div> : null}
           {error ? <p className="error-text">{error}</p> : null}
+          {!loading && products.length === 0 ? <div className="empty-panel">Nessun prodotto trovato.</div> : null}
 
-          {!loading && products.length === 0 ? (
-            <div className="empty-showcase">Nessun prodotto trovato. Prova a cambiare filtri o ricerca.</div>
-          ) : null}
-
-          {!loading && products.length > 0 ? (
-            <div className="product-grid">
+          {!loading ? (
+            <section className="product-grid">
               {products.map((product) => (
                 <ProductCard key={product._id} product={product} />
               ))}
-            </div>
+            </section>
           ) : null}
-        </section>
+        </div>
       </section>
     </div>
   );

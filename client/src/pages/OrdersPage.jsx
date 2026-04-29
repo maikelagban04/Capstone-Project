@@ -28,40 +28,29 @@ const OrdersPage = () => {
   }, [auth?.token]);
 
   return (
-    <div className="stack-2xl">
+    <div className="page-stack">
       <section className="section-head">
         <div>
-          <span className="eyebrow">Ordini</span>
-          <h1>Storico ordini chiaro e leggibile in pochi secondi.</h1>
+          <span className="section-kicker">Ordini</span>
+          <h1>Storico ordini.</h1>
         </div>
       </section>
 
-      {loading ? <div className="empty-showcase">Caricamento ordini...</div> : null}
+      {loading ? <div className="empty-panel">Caricamento ordini...</div> : null}
       {error ? <p className="error-text">{error}</p> : null}
+      {!loading && orders.length === 0 ? <div className="empty-panel">Nessun ordine disponibile.</div> : null}
 
-      {!loading && orders.length === 0 ? (
-        <div className="empty-showcase">Non ci sono ancora ordini associati a questo account.</div>
-      ) : null}
-
-      <div className="orders-grid">
+      <section className="order-grid">
         {orders.map((order) => (
-          <article key={order._id} className="card order-card-premium">
-            <div className="order-card-premium__header">
-              <div>
-                <small>Order ID</small>
-                <strong>#{order._id.slice(-6).toUpperCase()}</strong>
-              </div>
-              <span className={`status-badge status-badge--${order.status}`}>{order.status}</span>
+          <article key={order._id} className="order-card">
+            <div className="order-card__head">
+              <strong>#{order._id.slice(-6).toUpperCase()}</strong>
+              <span className={`stock-pill ${order.status === "delivered" ? "is-available" : "is-empty"}`}>{order.status}</span>
             </div>
-
-            <div className="summary-line">
-              <span>Totale</span>
-              <strong>€ {order.totalAmount.toFixed(2)}</strong>
-            </div>
-
-            <div className="stack-sm">
+            <p>Totale: € {order.totalAmount.toFixed(2)}</p>
+            <div className="order-card__items">
               {order.items.map((item) => (
-                <div key={`${order._id}-${item.product}`} className="order-line">
+                <div key={`${order._id}-${item.product}`}>
                   <span>{item.title} x {item.quantity}</span>
                   <strong>€ {item.subtotal.toFixed(2)}</strong>
                 </div>
@@ -69,7 +58,7 @@ const OrdersPage = () => {
             </div>
           </article>
         ))}
-      </div>
+      </section>
     </div>
   );
 };

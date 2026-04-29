@@ -8,103 +8,70 @@ import { useAuth } from "../hooks/useAuth";
 import { useCart } from "../hooks/useCart";
 
 const Header = () => {
-  const [expanded, setExpanded] = useState(false);
+  const [open, setOpen] = useState(false);
   const { auth, isAdmin, logout } = useAuth();
   const { cartItems } = useCart();
   const { theme, toggleTheme } = useTheme();
 
-  const closeMenu = () => setExpanded(false);
-  const brandLogo = theme === "dark" ? logoDark : logoLight;
+  const closeMenu = () => setOpen(false);
 
   return (
-    <header className="navbar navbar-expand-xl navbar-custom">
-      <div className="page-shell nav-shell">
-        <Link to="/" className="navbar-brand brand-lockup me-0" onClick={closeMenu}>
-          <div className="brand-logo-wrap">
-            <img src={brandLogo} alt="KyronTech" className="brand-logo-image" />
-          </div>
-          <div className="brand-copy">
+    <header className="site-header">
+      <div className="page-shell site-header__inner">
+        <Link to="/" className="brand" onClick={closeMenu}>
+          <img src={theme === "dark" ? logoDark : logoLight} alt="KyronTech" className="brand__logo" />
+          <div className="brand__copy">
             <strong>KyronTech</strong>
-            <span>Premium PC Components</span>
+            <span>PC parts marketplace</span>
           </div>
         </Link>
 
         <button
-          className="navbar-toggler"
           type="button"
-          onClick={() => setExpanded((current) => !current)}
-          aria-label="Toggle navigation"
+          className="site-header__toggle d-xl-none"
+          onClick={() => setOpen((current) => !current)}
+          aria-label="Open menu"
         >
-          <span className="navbar-toggler-icon"></span>
+          <span />
+          <span />
         </button>
 
-        <div className={`collapse navbar-collapse nav-panel ${expanded ? "show" : ""}`}>
-          <ul className="navbar-nav nav-links align-items-xl-center mb-3 mb-xl-0">
-            <li className="nav-item">
-              <NavLink to="/" className="nav-link" onClick={closeMenu}>
-                Home
-              </NavLink>
-            </li>
-            <li className="nav-item">
-              <NavLink to="/catalog" className="nav-link" onClick={closeMenu}>
-                Catalog
-              </NavLink>
-            </li>
-            <li className="nav-item">
-              <NavLink to="/cart" className="nav-link" onClick={closeMenu}>
-                Cart
-                <span className="nav-count">{cartItems.length}</span>
-              </NavLink>
-            </li>
-            {auth ? (
-              <>
-                <li className="nav-item">
-                  <NavLink to="/orders" className="nav-link" onClick={closeMenu}>
-                    Orders
-                  </NavLink>
-                </li>
-                <li className="nav-item">
-                  <NavLink to="/profile" className="nav-link" onClick={closeMenu}>
-                    Profile
-                  </NavLink>
-                </li>
-              </>
-            ) : null}
-            {isAdmin ? (
-              <li className="nav-item">
-                <NavLink to="/admin" className="nav-link" onClick={closeMenu}>
-                  Dashboard
-                </NavLink>
-              </li>
-            ) : null}
-          </ul>
+        <div className={`site-header__panel ${open ? "is-open" : ""}`}>
+          <nav className="site-nav">
+            <NavLink to="/" onClick={closeMenu}>Home</NavLink>
+            <NavLink to="/catalog" onClick={closeMenu}>Catalogo</NavLink>
+            <NavLink to="/cart" onClick={closeMenu}>
+              Carrello
+              <span className="site-nav__count">{cartItems.length}</span>
+            </NavLink>
+            {auth ? <NavLink to="/orders" onClick={closeMenu}>Ordini</NavLink> : null}
+            {auth ? <NavLink to="/profile" onClick={closeMenu}>Profilo</NavLink> : null}
+            {isAdmin ? <NavLink to="/admin" onClick={closeMenu}>Dashboard</NavLink> : null}
+          </nav>
 
-          <div className="nav-actions">
-            <button type="button" className="theme-switch" onClick={toggleTheme} aria-label="Toggle theme">
-              <span className={`theme-switch__thumb ${theme === "dark" ? "is-dark" : ""}`} />
-              <span className="theme-switch__label">{theme === "light" ? "Light" : "Dark"}</span>
+          <div className="site-header__actions">
+            <button type="button" className="theme-toggle" onClick={toggleTheme} aria-label="Toggle theme">
+              <span className={`theme-toggle__dot ${theme === "dark" ? "is-dark" : ""}`} />
+              <span>{theme === "dark" ? "Dark" : "Light"}</span>
             </button>
 
             {auth ? (
               <>
-                <div className="nav-user-chip">
-                  <small>Logged in</small>
-                  <strong>{auth.name}</strong>
-                </div>
-                <button type="button" className="btn btn-outline-secondary btn-premium-outline" onClick={logout}>
+                <span className="site-header__user">{auth.name}</span>
+                <button type="button" className="btn btn-outline-secondary btn-shell" onClick={logout}>
                   Logout
                 </button>
               </>
             ) : (
               <>
-                <a href={`${API_URL}/auth/google`} className="btn btn-outline-secondary btn-premium-outline">
+                <a href={`${API_URL}/auth/google`} className="btn btn-outline-secondary btn-shell">
                   Google
                 </a>
-                <Link to="/login" className="btn btn-outline-secondary btn-premium-outline" onClick={closeMenu}>
+                <Link to="/login" className="btn btn-outline-secondary btn-shell" onClick={closeMenu}>
                   Login
                 </Link>
-                <Link to="/register" className="btn btn-primary btn-premium" onClick={closeMenu}>
-                  Build your account
+                <Link to="/register" className="btn btn-primary btn-shell btn-shell--primary" onClick={closeMenu}>
+                  Registrati
                 </Link>
               </>
             )}

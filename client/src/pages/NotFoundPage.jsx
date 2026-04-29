@@ -2,12 +2,12 @@ import { Link } from "react-router-dom";
 
 const NotFoundPage = () => {
   return (
-    <section className="card empty-state">
-      <span className="eyebrow">404</span>
-      <h1>Page not found</h1>
-      <p>The route you requested does not exist in this storefront.</p>
-      <Link to="/" className="button">
-        Go home
+    <section className="empty-panel">
+      <span className="section-kicker">404</span>
+      <h1>Pagina non trovata.</h1>
+      <p>La route richiesta non esiste oppure manca il rewrite lato deploy.</p>
+      <Link to="/" className="btn btn-primary btn-shell btn-shell--primary">
+        Torna alla home
       </Link>
     </section>
   );

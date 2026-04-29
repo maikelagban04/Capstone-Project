@@ -13,7 +13,7 @@ const OAuthSuccessPage = () => {
       const token = searchParams.get("token");
 
       if (!token) {
-        setError("Google sign-in failed. Missing token.");
+        setError("Missing OAuth token.");
         return;
       }
 
@@ -33,10 +33,10 @@ const OAuthSuccessPage = () => {
   }
 
   return (
-    <section className="auth-card card">
-      <span className="eyebrow">Google Sign-In</span>
-      <h1>Completing your access</h1>
-      <p>We are finalizing your Google login and loading your account.</p>
+    <section className="empty-panel">
+      <span className="section-kicker">Google OAuth</span>
+      <h1>Accesso in completamento.</h1>
+      <p>Sto caricando il profilo e finalizzando la sessione.</p>
     </section>
   );
 };

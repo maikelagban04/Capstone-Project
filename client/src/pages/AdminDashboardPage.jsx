@@ -1,45 +1,49 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { apiRequest } from "../api/client";
 import { useAuth } from "../hooks/useAuth";
+import { COMPONENT_TYPES, parseJsonInput, stringifyJsonInput } from "../utils/productHelpers";
 
-const initialForm = {
+const emptyForm = {
   title: "",
   description: "",
   priceBase: "",
   markup: "",
   image: "",
   category: "",
+  componentType: "",
+  brand: "",
+  model: "",
+  stock: "0",
+  specificationsJson: "{}",
+  compatibilityJson: "{}",
 };
 
 const fetchDashboardData = async (token) => {
-  const authHeaders = {
+  const headers = {
     Authorization: `Bearer ${token}`,
   };
 
   const [productData, orderData] = await Promise.all([
     apiRequest("/products"),
-    apiRequest("/orders", { headers: authHeaders }),
+    apiRequest("/orders", { headers }),
   ]);
 
-  return {
-    products: productData,
-    orders: orderData,
-  };
+  return { products: productData, orders: orderData };
 };
 
 const AdminDashboardPage = () => {
   const { auth } = useAuth();
   const [products, setProducts] = useState([]);
   const [orders, setOrders] = useState([]);
-  const [form, setForm] = useState(initialForm);
+  const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState("");
   const [message, setMessage] = useState("");
 
-  const authHeaders = {
+  const headers = {
     Authorization: `Bearer ${auth.token}`,
   };
 
-  const dashboardStats = useMemo(
+  const stats = useMemo(
     () => [
       { label: "Prodotti", value: products.length },
       { label: "Ordini", value: orders.length },
@@ -48,53 +52,59 @@ const AdminDashboardPage = () => {
     [products, orders],
   );
 
-  const loadDashboardData = async () => {
+  const loadDashboard = useCallback(async () => {
     const data = await fetchDashboardData(auth.token);
     setProducts(data.products);
     setOrders(data.orders);
-  };
+  }, [auth.token]);
 
   useEffect(() => {
-    const initializeDashboard = async () => {
+    const initialize = async () => {
       try {
-        const data = await fetchDashboardData(auth.token);
-        setProducts(data.products);
-        setOrders(data.orders);
-      } catch (error) {
-        setMessage(error.message);
+        await loadDashboard();
+      } catch (requestError) {
+        setMessage(requestError.message);
       }
     };
 
-    initializeDashboard();
-  }, [auth.token]);
+    initialize();
+  }, [loadDashboard]);
 
   const resetForm = () => {
-    setForm(initialForm);
     setEditingId("");
+    setForm(emptyForm);
   };
 
-  const handleProductSubmit = async (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
 
     try {
-      const method = editingId ? "PUT" : "POST";
-      const endpoint = editingId ? `/products/${editingId}` : "/products";
+      const payload = {
+        title: form.title,
+        description: form.description,
+        priceBase: Number(form.priceBase),
+        markup: Number(form.markup),
+        image: form.image,
+        category: form.category,
+        componentType: form.componentType,
+        brand: form.brand,
+        model: form.model,
+        stock: Number(form.stock),
+        specifications: parseJsonInput(form.specificationsJson, "Specifications"),
+        compatibility: parseJsonInput(form.compatibilityJson, "Compatibility"),
+      };
 
-      await apiRequest(endpoint, {
-        method,
-        headers: authHeaders,
-        body: JSON.stringify({
-          ...form,
-          priceBase: Number(form.priceBase),
-          markup: Number(form.markup),
-        }),
+      await apiRequest(editingId ? `/products/${editingId}` : "/products", {
+        method: editingId ? "PUT" : "POST",
+        headers,
+        body: JSON.stringify(payload),
       });
 
+      setMessage(editingId ? "Prodotto aggiornato." : "Prodotto creato.");
       resetForm();
-      setMessage("Prodotto salvato correttamente.");
-      await loadDashboardData();
-    } catch (error) {
-      setMessage(error.message);
+      await loadDashboard();
+    } catch (requestError) {
+      setMessage(requestError.message);
     }
   };
 
@@ -103,10 +113,16 @@ const AdminDashboardPage = () => {
     setForm({
       title: product.title,
       description: product.description,
-      priceBase: product.priceBase,
-      markup: product.markup,
+      priceBase: String(product.priceBase),
+      markup: String(product.markup),
       image: product.image,
       category: product.category,
+      componentType: product.componentType,
+      brand: product.brand,
+      model: product.model,
+      stock: String(product.stock ?? 0),
+      specificationsJson: stringifyJsonInput(product.specifications),
+      compatibilityJson: stringifyJsonInput(product.compatibility),
     });
   };
 
@@ -114,12 +130,12 @@ const AdminDashboardPage = () => {
     try {
       await apiRequest(`/products/${productId}`, {
         method: "DELETE",
-        headers: authHeaders,
+        headers,
       });
       setMessage("Prodotto eliminato.");
-      await loadDashboardData();
-    } catch (error) {
-      setMessage(error.message);
+      await loadDashboard();
+    } catch (requestError) {
+      setMessage(requestError.message);
     }
   };
 
@@ -127,29 +143,29 @@ const AdminDashboardPage = () => {
     try {
       await apiRequest(`/orders/${orderId}/status`, {
         method: "PATCH",
-        headers: authHeaders,
+        headers,
         body: JSON.stringify({ status }),
       });
+      await loadDashboard();
       setMessage("Stato ordine aggiornato.");
-      await loadDashboardData();
-    } catch (error) {
-      setMessage(error.message);
+    } catch (requestError) {
+      setMessage(requestError.message);
     }
   };
 
   return (
-    <div className="stack-2xl">
+    <div className="page-stack">
       <section className="section-head">
         <div>
-          <span className="eyebrow">Dashboard admin</span>
-          <h1>Gestione prodotti e ordini con layout più chiaro e operativo.</h1>
+          <span className="section-kicker">Admin</span>
+          <h1>Dashboard coerente con il model del database.</h1>
         </div>
       </section>
 
-      <section className="admin-stat-grid">
-        {dashboardStats.map((item) => (
-          <article key={item.label} className="metric-card">
-            <span>{item.label}</span>
+      <section className="info-card-grid">
+        {stats.map((item) => (
+          <article key={item.label} className="info-card">
+            <small>{item.label}</small>
             <strong>{item.value}</strong>
           </article>
         ))}
@@ -157,141 +173,127 @@ const AdminDashboardPage = () => {
 
       {message ? <div className="alert alert-info">{message}</div> : null}
 
-      <section className="dashboard-grid">
-        <article className="card admin-form-panel">
-          <div className="checkout-section-title">
-            <h2>{editingId ? "Modifica prodotto" : "Nuovo prodotto"}</h2>
-            <p>La struttura rimane compatibile con il backend esistente.</p>
+      <section className="admin-layout">
+        <form className="admin-card" onSubmit={handleSubmit}>
+          <div className="section-head">
+            <div>
+              <span className="section-kicker">Prodotto</span>
+              <h2>{editingId ? "Modifica prodotto" : "Nuovo prodotto"}</h2>
+            </div>
           </div>
 
-          <form className="row g-3" onSubmit={handleProductSubmit}>
+          <div className="row g-3">
             <div className="col-md-6">
-              <label className="form-label">Titolo</label>
-              <input
-                type="text"
-                className="form-control"
-                value={form.title}
-                onChange={(event) => setForm({ ...form, title: event.target.value })}
-                required
-              />
+              <input className="form-control" placeholder="Titolo" value={form.title} onChange={(event) => setForm({ ...form, title: event.target.value })} required />
             </div>
             <div className="col-md-6">
-              <label className="form-label">Categoria</label>
-              <input
-                type="text"
-                className="form-control"
-                value={form.category}
-                onChange={(event) => setForm({ ...form, category: event.target.value })}
-                required
-              />
+              <input className="form-control" placeholder="Categoria" value={form.category} onChange={(event) => setForm({ ...form, category: event.target.value })} required />
             </div>
-            <div className="col-md-6">
-              <label className="form-label">Prezzo base</label>
-              <input
-                type="number"
-                step="0.01"
-                className="form-control"
-                value={form.priceBase}
-                onChange={(event) => setForm({ ...form, priceBase: event.target.value })}
-                required
-              />
+            <div className="col-md-4">
+              <select className="form-select" value={form.componentType} onChange={(event) => setForm({ ...form, componentType: event.target.value })} required>
+                <option value="">Tipo componente</option>
+                {COMPONENT_TYPES.map((type) => (
+                  <option key={type} value={type}>{type}</option>
+                ))}
+              </select>
             </div>
-            <div className="col-md-6">
-              <label className="form-label">Markup %</label>
-              <input
-                type="number"
-                step="0.01"
-                className="form-control"
-                value={form.markup}
-                onChange={(event) => setForm({ ...form, markup: event.target.value })}
-                required
-              />
+            <div className="col-md-4">
+              <input className="form-control" placeholder="Brand" value={form.brand} onChange={(event) => setForm({ ...form, brand: event.target.value })} required />
+            </div>
+            <div className="col-md-4">
+              <input className="form-control" placeholder="Model" value={form.model} onChange={(event) => setForm({ ...form, model: event.target.value })} required />
+            </div>
+            <div className="col-md-4">
+              <input type="number" className="form-control" placeholder="Prezzo base" value={form.priceBase} onChange={(event) => setForm({ ...form, priceBase: event.target.value })} required />
+            </div>
+            <div className="col-md-4">
+              <input type="number" className="form-control" placeholder="Markup" value={form.markup} onChange={(event) => setForm({ ...form, markup: event.target.value })} required />
+            </div>
+            <div className="col-md-4">
+              <input type="number" className="form-control" placeholder="Stock" value={form.stock} onChange={(event) => setForm({ ...form, stock: event.target.value })} required />
             </div>
             <div className="col-12">
-              <label className="form-label">Immagine URL</label>
-              <input
-                type="url"
-                className="form-control"
-                value={form.image}
-                onChange={(event) => setForm({ ...form, image: event.target.value })}
-                required
-              />
+              <input type="url" className="form-control" placeholder="Image URL" value={form.image} onChange={(event) => setForm({ ...form, image: event.target.value })} required />
             </div>
             <div className="col-12">
-              <label className="form-label">Descrizione</label>
+              <textarea className="form-control" placeholder="Descrizione" value={form.description} onChange={(event) => setForm({ ...form, description: event.target.value })} required />
+            </div>
+            <div className="col-md-6">
               <textarea
                 className="form-control"
-                value={form.description}
-                onChange={(event) => setForm({ ...form, description: event.target.value })}
-                required
+                placeholder='Specifications JSON, es: {"cores":"8","frequency":"5.0 GHz"}'
+                value={form.specificationsJson}
+                onChange={(event) => setForm({ ...form, specificationsJson: event.target.value })}
               />
             </div>
-            <div className="col-12 d-flex gap-2 flex-wrap">
-              <button type="submit" className="btn btn-primary btn-premium">
-                {editingId ? "Aggiorna prodotto" : "Crea prodotto"}
-              </button>
-              {editingId ? (
-                <button type="button" className="btn btn-outline-secondary btn-premium-outline" onClick={resetForm}>
-                  Annulla modifica
-                </button>
-              ) : null}
+            <div className="col-md-6">
+              <textarea
+                className="form-control"
+                placeholder='Compatibility JSON, es: {"socket":"AM5","memoryType":"DDR5"}'
+                value={form.compatibilityJson}
+                onChange={(event) => setForm({ ...form, compatibilityJson: event.target.value })}
+              />
             </div>
-          </form>
-        </article>
-
-        <article className="card admin-list-panel">
-          <div className="checkout-section-title">
-            <h2>Prodotti</h2>
-            <p>Vista sintetica dei prodotti già pubblicati.</p>
           </div>
 
-          <div className="stack-sm">
+          <div className="admin-card__actions">
+            <button type="submit" className="btn btn-primary btn-shell btn-shell--primary">
+              {editingId ? "Aggiorna" : "Crea"}
+            </button>
+            {editingId ? (
+              <button type="button" className="btn btn-outline-secondary btn-shell" onClick={resetForm}>
+                Annulla
+              </button>
+            ) : null}
+          </div>
+        </form>
+
+        <div className="admin-card">
+          <div className="section-head">
+            <div>
+              <span className="section-kicker">Catalogo</span>
+              <h2>Prodotti</h2>
+            </div>
+          </div>
+
+          <div className="admin-list">
             {products.map((product) => (
-              <div key={product._id} className="admin-row">
+              <article key={product._id} className="admin-list__item">
                 <div>
                   <strong>{product.title}</strong>
-                  <p>€ {product.finalPrice.toFixed(2)} · {product.category}</p>
+                  <p>{product.componentType} · {product.brand} · € {product.finalPrice.toFixed(2)}</p>
                 </div>
-                <div className="d-flex gap-2 flex-wrap">
-                  <button type="button" className="btn btn-outline-secondary btn-sm btn-premium-outline" onClick={() => handleEdit(product)}>
+                <div className="admin-list__actions">
+                  <button type="button" className="btn btn-outline-secondary btn-shell" onClick={() => handleEdit(product)}>
                     Modifica
                   </button>
-                  <button type="button" className="btn btn-primary btn-sm btn-premium" onClick={() => handleDelete(product._id)}>
+                  <button type="button" className="btn btn-outline-secondary btn-shell" onClick={() => handleDelete(product._id)}>
                     Elimina
                   </button>
                 </div>
-              </div>
+              </article>
             ))}
           </div>
-        </article>
+        </div>
       </section>
 
-      <section className="card admin-orders-panel">
-        <div className="checkout-section-title">
-          <h2>Ordini</h2>
-          <p>Controllo stato ordini con interazione semplice e leggibile.</p>
+      <section className="admin-card">
+        <div className="section-head">
+          <div>
+            <span className="section-kicker">Ordini</span>
+            <h2>Gestione ordini</h2>
+          </div>
         </div>
 
-        <div className="orders-grid">
+        <div className="order-grid">
           {orders.map((order) => (
-            <article key={order._id} className="order-card-premium">
-              <div className="order-card-premium__header">
-                <div>
-                  <small>Cliente</small>
-                  <strong>{order.user?.name || "Customer"}</strong>
-                </div>
-                <span className={`status-badge status-badge--${order.status}`}>{order.status}</span>
+            <article key={order._id} className="order-card">
+              <div className="order-card__head">
+                <strong>{order.user?.name || "Customer"}</strong>
+                <span>{order.user?.email}</span>
               </div>
-              <p className="text-muted">{order.user?.email}</p>
-              <div className="summary-line">
-                <span>Totale</span>
-                <strong>€ {order.totalAmount.toFixed(2)}</strong>
-              </div>
-              <select
-                className="form-select"
-                value={order.status}
-                onChange={(event) => handleStatusChange(order._id, event.target.value)}
-              >
+              <p>Totale: € {order.totalAmount.toFixed(2)}</p>
+              <select className="form-select" value={order.status} onChange={(event) => handleStatusChange(order._id, event.target.value)}>
                 <option value="pending">pending</option>
                 <option value="shipped">shipped</option>
                 <option value="delivered">delivered</option>

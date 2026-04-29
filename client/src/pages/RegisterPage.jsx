@@ -21,72 +21,49 @@ const RegisterPage = () => {
   };
 
   return (
-    <section className="auth-page">
-      <div className="auth-page__panel">
-        <span className="eyebrow">Nuovo account</span>
-        <h1>Entra nell'ecosistema KyronTech.</h1>
-        <p>
-          Registrati per velocizzare i prossimi acquisti, gestire ordini e avere una customer experience più lineare.
-        </p>
-        <div className="spotlight-card">
-          <h3>Perché conviene</h3>
-          <p>Checkout rapido, storico ordini chiaro e un'esperienza coerente fra desktop, tablet e smartphone.</p>
-        </div>
+    <section className="auth-layout">
+      <div className="auth-layout__intro">
+        <span className="section-kicker">Registrazione</span>
+        <h1>Crea il tuo account KyronTech.</h1>
+        <p>Una volta registrato puoi finalizzare ordini più in fretta e gestire il tuo storico.</p>
       </div>
 
-      <div className="card auth-card-premium">
-        <div className="checkout-section-title">
-          <h2>Crea il tuo account</h2>
-          <p>Pochi dati essenziali e puoi iniziare subito.</p>
-        </div>
-
+      <div className="auth-card">
         {error ? <div className="alert alert-danger">{error}</div> : null}
-
-        <form className="stack-md" onSubmit={handleSubmit}>
-          <div>
-            <label className="form-label">Nome completo</label>
-            <input
-              type="text"
-              className="form-control"
-              placeholder="Mario Rossi"
-              value={form.name}
-              onChange={(event) => setForm({ ...form, name: event.target.value })}
-              required
-            />
-          </div>
-          <div>
-            <label className="form-label">Email</label>
-            <input
-              type="email"
-              className="form-control"
-              placeholder="you@example.com"
-              value={form.email}
-              onChange={(event) => setForm({ ...form, email: event.target.value })}
-              required
-            />
-          </div>
-          <div>
-            <label className="form-label">Password</label>
-            <input
-              type="password"
-              className="form-control"
-              placeholder="Minimo 6 caratteri"
-              minLength="6"
-              value={form.password}
-              onChange={(event) => setForm({ ...form, password: event.target.value })}
-              required
-            />
-          </div>
-          <button type="submit" className="btn btn-primary btn-lg btn-premium" disabled={loading}>
-            {loading ? "Creazione account..." : "Registrati"}
+        <form className="auth-form" onSubmit={handleSubmit}>
+          <input
+            type="text"
+            className="form-control"
+            placeholder="Nome completo"
+            value={form.name}
+            onChange={(event) => setForm({ ...form, name: event.target.value })}
+            required
+          />
+          <input
+            type="email"
+            className="form-control"
+            placeholder="Email"
+            value={form.email}
+            onChange={(event) => setForm({ ...form, email: event.target.value })}
+            required
+          />
+          <input
+            type="password"
+            className="form-control"
+            placeholder="Password"
+            minLength="6"
+            value={form.password}
+            onChange={(event) => setForm({ ...form, password: event.target.value })}
+            required
+          />
+          <button type="submit" className="btn btn-primary btn-shell btn-shell--primary" disabled={loading}>
+            {loading ? "Creazione..." : "Registrati"}
           </button>
         </form>
-
-        <a href={`${API_URL}/auth/google`} className="btn btn-outline-secondary btn-premium-outline w-100 mt-3">
+        <a href={`${API_URL}/auth/google`} className="btn btn-outline-secondary btn-shell">
           Registrati con Google
         </a>
-
-        <p className="text-center text-muted mt-4 mb-0">
+        <p className="auth-card__switch">
           Hai già un account? <Link to="/login">Accedi</Link>
         </p>
       </div>

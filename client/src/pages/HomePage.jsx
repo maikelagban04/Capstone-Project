@@ -1,30 +1,18 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { apiRequest } from "../api/client";
 import ProductCard from "../components/ProductCard";
 
-const categoryHighlights = [
-  { title: "CPU e GPU", text: "Componenti flagship per gaming competitivo e workstation spinte." },
-  { title: "RAM e Storage", text: "Prestazioni rapide, latenza ridotta e affidabilità per ogni build." },
-  { title: "Motherboard e PSU", text: "Base solida per sistemi bilanciati, stabili e futuri upgrade." },
-];
-
-const trustHighlights = [
-  "Solo brand selezionati e componenti verificati",
-  "Filtri rapidi per compatibilità, stock e fascia prezzo",
-  "Esperienza d'acquisto fluida da mobile a desktop",
-];
-
 const HomePage = () => {
-  const [featured, setFeatured] = useState([]);
+  const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    const loadFeatured = async () => {
+    const loadProducts = async () => {
       try {
-        const data = await apiRequest("/products?limit=6");
-        setFeatured(data.slice(0, 6));
+        const data = await apiRequest("/products");
+        setProducts(data);
       } catch (requestError) {
         setError(requestError.message);
       } finally {
@@ -32,105 +20,101 @@ const HomePage = () => {
       }
     };
 
-    loadFeatured();
+    loadProducts();
   }, []);
 
-  return (
-    <div className="stack-2xl">
-      <section className="hero-premium">
-        <div className="hero-premium__content">
-          <span className="eyebrow">Hardware boutique</span>
-          <h1>Componenti PC premium progettati per build che devono stupire.</h1>
-          <p>
-            KyronTech unisce il feeling editoriale dei brand premium con la praticità di un ecommerce ottimizzato per
-            conversione, confronto prodotti e acquisti veloci.
-          </p>
+  const featuredProducts = useMemo(() => products.slice(0, 6), [products]);
 
-          <div className="hero-premium__actions">
-            <Link to="/catalog" className="btn btn-primary btn-lg btn-premium">
-              Esplora il catalogo
+  const componentGroups = useMemo(() => {
+    const counts = products.reduce((accumulator, product) => {
+      accumulator[product.componentType] = (accumulator[product.componentType] || 0) + 1;
+      return accumulator;
+    }, {});
+
+    return Object.entries(counts)
+      .sort(([, firstCount], [, secondCount]) => secondCount - firstCount)
+      .slice(0, 4);
+  }, [products]);
+
+  const brandCount = useMemo(() => new Set(products.map((product) => product.brand)).size, [products]);
+
+  return (
+    <div className="page-stack">
+      <section className="hero">
+        <div className="hero__copy">
+          <span className="section-kicker">KyronTech</span>
+          <h1>Componenti PC scelti bene, trovati in fretta, acquistati senza attrito.</h1>
+          <p>
+            Un ecommerce pensato per CPU, GPU, RAM, storage, motherboard, PSU e tutto il resto dell'ecosistema PC.
+            Navigazione semplice, dettaglio prodotto utile e acquisto pulito.
+          </p>
+          <div className="hero__actions">
+            <Link to="/catalog" className="btn btn-primary btn-shell btn-shell--primary">
+              Esplora catalogo
             </Link>
-            <Link to="/cart" className="btn btn-outline-secondary btn-lg btn-premium-outline">
+            <Link to="/cart" className="btn btn-outline-secondary btn-shell">
               Vai al carrello
             </Link>
           </div>
-
-          <div className="hero-stats">
-            <div className="metric-card">
-              <strong>48h</strong>
-              <span>evasione media ordini</span>
-            </div>
-            <div className="metric-card">
-              <strong>Top brand</strong>
-              <span>selezione orientata a qualità e affidabilità</span>
-            </div>
-            <div className="metric-card">
-              <strong>Mobile first</strong>
-              <span>UX fluida anche durante checkout rapido</span>
-            </div>
-          </div>
         </div>
 
-        <div className="hero-premium__visual">
-          <div className="hero-visual-card glass-panel">
-            <div className="hero-visual-card__top">
-              <span className="status-dot" />
-              <span>Build intelligence</span>
-            </div>
-            <h2>Seleziona i componenti giusti più in fretta.</h2>
-            <div className="stack-lg">
-              {categoryHighlights.map((item) => (
-                <div key={item.title} className="hero-feature-row">
-                  <strong>{item.title}</strong>
-                  <p>{item.text}</p>
-                </div>
-              ))}
-            </div>
+        <div className="hero__panel">
+          <div className="metric-grid">
+            <article>
+              <small>Prodotti</small>
+              <strong>{products.length}</strong>
+            </article>
+            <article>
+              <small>Brand</small>
+              <strong>{brandCount}</strong>
+            </article>
+            <article>
+              <small>Tipi componente</small>
+              <strong>{componentGroups.length}</strong>
+            </article>
+          </div>
+
+          <div className="hero__list">
+            {componentGroups.map(([type, count]) => (
+              <div key={type} className="hero__list-item">
+                <strong>{type}</strong>
+                <span>{count} prodotti disponibili</span>
+              </div>
+            ))}
           </div>
         </div>
       </section>
 
-      <section className="trust-band">
-        {trustHighlights.map((item) => (
-          <article key={item} className="trust-band__item">
-            <span className="trust-band__icon">•</span>
-            <p>{item}</p>
+      <section className="section-head">
+        <div>
+          <span className="section-kicker">Categorie principali</span>
+          <h2>La home riflette i dati reali del catalogo.</h2>
+        </div>
+      </section>
+
+      <section className="category-grid">
+        {componentGroups.map(([type, count]) => (
+          <article key={type} className="category-tile">
+            <strong>{type}</strong>
+            <p>{count} articoli in questa categoria.</p>
+            <Link to={`/catalog?componentType=${encodeURIComponent(type)}`}>Apri categoria</Link>
           </article>
         ))}
       </section>
 
       <section className="section-head">
         <div>
-          <span className="eyebrow">Categorie chiave</span>
-          <h2>Una UI costruita per decidere bene e comprare più velocemente.</h2>
+          <span className="section-kicker">In evidenza</span>
+          <h2>Ultimi prodotti pubblicati.</h2>
         </div>
       </section>
 
-      <section className="spotlight-grid">
-        {categoryHighlights.map((item) => (
-          <article key={item.title} className="spotlight-card">
-            <h3>{item.title}</h3>
-            <p>{item.text}</p>
-          </article>
-        ))}
-      </section>
-
-      <section className="section-head">
-        <div>
-          <span className="eyebrow">Best seller</span>
-          <h2>Prodotti in evidenza per la tua prossima build.</h2>
-        </div>
-        <Link to="/catalog" className="section-link">
-          Vedi tutto il catalogo
-        </Link>
-      </section>
-
-      {loading ? <div className="empty-showcase">Caricamento prodotti in corso...</div> : null}
+      {loading ? <div className="empty-panel">Caricamento prodotti...</div> : null}
       {error ? <p className="error-text">{error}</p> : null}
 
       {!loading ? (
         <section className="product-grid">
-          {featured.map((product) => (
+          {featuredProducts.map((product) => (
             <ProductCard key={product._id} product={product} />
           ))}
         </section>
