@@ -25,7 +25,7 @@ const RegisterPage = () => {
       <div className="auth-layout__intro">
         <span className="section-kicker">Registrazione</span>
         <h1>Crea il tuo account KyronTech.</h1>
-        <p>Una volta registrato puoi finalizzare ordini più in fretta e gestire il tuo storico.</p>
+        <p>Registrazione rapida, checkout più veloce e gestione ordini senza passaggi inutili.</p>
       </div>
 
       <div className="auth-card">
@@ -60,9 +60,15 @@ const RegisterPage = () => {
             {loading ? "Creazione..." : "Registrati"}
           </button>
         </form>
-        <a href={`${API_URL}/auth/google`} className="btn btn-outline-secondary btn-shell">
+
+        <div className="auth-divider">
+          <span>oppure</span>
+        </div>
+
+        <a href={`${API_URL}/auth/google`} className="btn btn-outline-secondary btn-shell auth-google">
           Registrati con Google
         </a>
+
         <p className="auth-card__switch">
           Hai già un account? <Link to="/login">Accedi</Link>
         </p>

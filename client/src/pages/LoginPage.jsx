@@ -24,7 +24,7 @@ const LoginPage = () => {
   return (
     <section className="auth-layout">
       <div className="auth-layout__intro">
-        <span className="section-kicker">Login</span>
+        <span className="section-kicker">Accesso</span>
         <h1>Accedi al tuo account.</h1>
         <p>Ordini, carrello e checkout restano in un flusso semplice e coerente.</p>
       </div>
@@ -52,9 +52,15 @@ const LoginPage = () => {
             {loading ? "Accesso..." : "Accedi"}
           </button>
         </form>
-        <a href={`${API_URL}/auth/google`} className="btn btn-outline-secondary btn-shell">
+
+        <div className="auth-divider">
+          <span>oppure</span>
+        </div>
+
+        <a href={`${API_URL}/auth/google`} className="btn btn-outline-secondary btn-shell auth-google">
           Continua con Google
         </a>
+
         <p className="auth-card__switch">
           Non hai un account? <Link to="/register">Registrati</Link>
         </p>

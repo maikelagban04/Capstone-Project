@@ -23,63 +23,55 @@ const HomePage = () => {
     loadProducts();
   }, []);
 
-  const featuredProducts = useMemo(() => products.slice(0, 6), [products]);
+  const featuredProducts = useMemo(() => products.slice(0, 4), [products]);
 
-  const componentGroups = useMemo(() => {
-    const counts = products.reduce((accumulator, product) => {
+  const categories = useMemo(() => {
+    const grouped = products.reduce((accumulator, product) => {
       accumulator[product.componentType] = (accumulator[product.componentType] || 0) + 1;
       return accumulator;
     }, {});
 
-    return Object.entries(counts)
+    return Object.entries(grouped)
       .sort(([, firstCount], [, secondCount]) => secondCount - firstCount)
-      .slice(0, 4);
+      .slice(0, 6);
   }, [products]);
 
-  const brandCount = useMemo(() => new Set(products.map((product) => product.brand)).size, [products]);
+  const heroCategory = categories[0]?.[0] || "Componenti";
 
   return (
     <div className="page-stack">
-      <section className="hero">
-        <div className="hero__copy">
-          <span className="section-kicker">KyronTech</span>
-          <h1>Componenti PC scelti bene, trovati in fretta, acquistati senza attrito.</h1>
+      <section className="home-hero">
+        <div className="home-hero__copy">
+          <span className="section-kicker">Hardware Store</span>
+          <h1>Componenti PC selezionati con una home finalmente essenziale.</h1>
           <p>
-            Un ecommerce pensato per CPU, GPU, RAM, storage, motherboard, PSU e tutto il resto dell'ecosistema PC.
-            Navigazione semplice, dettaglio prodotto utile e acquisto pulito.
+            KyronTech è pensato per chi vuole trovare subito CPU, GPU, RAM, storage e altri componenti senza
+            rumore visivo, senza blocchi inutili e con un percorso d’acquisto chiaro.
           </p>
           <div className="hero__actions">
             <Link to="/catalog" className="btn btn-primary btn-shell btn-shell--primary">
-              Esplora catalogo
+              Vai al catalogo
             </Link>
-            <Link to="/cart" className="btn btn-outline-secondary btn-shell">
-              Vai al carrello
+            <Link
+              to={heroCategory ? `/catalog?componentType=${encodeURIComponent(heroCategory)}` : "/catalog"}
+              className="btn btn-outline-secondary btn-shell"
+            >
+              Esplora {heroCategory}
             </Link>
           </div>
         </div>
 
-        <div className="hero__panel">
-          <div className="metric-grid">
-            <article>
-              <small>Prodotti</small>
-              <strong>{products.length}</strong>
-            </article>
-            <article>
-              <small>Brand</small>
-              <strong>{brandCount}</strong>
-            </article>
-            <article>
-              <small>Tipi componente</small>
-              <strong>{componentGroups.length}</strong>
-            </article>
+        <div className="home-hero__panel">
+          <div className="home-hero__panel-top">
+            <small>Focus attuale</small>
+            <strong>{heroCategory}</strong>
           </div>
-
-          <div className="hero__list">
-            {componentGroups.map(([type, count]) => (
-              <div key={type} className="hero__list-item">
-                <strong>{type}</strong>
-                <span>{count} prodotti disponibili</span>
-              </div>
+          <div className="home-hero__category-list">
+            {categories.map(([type, count]) => (
+              <Link key={type} to={`/catalog?componentType=${encodeURIComponent(type)}`} className="home-hero__category-row">
+                <span>{type}</span>
+                <strong>{count}</strong>
+              </Link>
             ))}
           </div>
         </div>
@@ -87,25 +79,25 @@ const HomePage = () => {
 
       <section className="section-head">
         <div>
-          <span className="section-kicker">Categorie principali</span>
-          <h2>La home riflette i dati reali del catalogo.</h2>
+          <span className="section-kicker">Categorie</span>
+          <h2>Il catalogo è organizzato intorno ai veri tipi di prodotto.</h2>
         </div>
       </section>
 
-      <section className="category-grid">
-        {componentGroups.map(([type, count]) => (
-          <article key={type} className="category-tile">
+      <section className="home-categories-grid">
+        {categories.map(([type, count]) => (
+          <Link key={type} to={`/catalog?componentType=${encodeURIComponent(type)}`} className="home-category-card">
+            <small>{count} prodotti</small>
             <strong>{type}</strong>
-            <p>{count} articoli in questa categoria.</p>
-            <Link to={`/catalog?componentType=${encodeURIComponent(type)}`}>Apri categoria</Link>
-          </article>
+            <span>Apri selezione</span>
+          </Link>
         ))}
       </section>
 
       <section className="section-head">
         <div>
-          <span className="section-kicker">In evidenza</span>
-          <h2>Ultimi prodotti pubblicati.</h2>
+          <span className="section-kicker">Selezione</span>
+          <h2>Prodotti in evidenza.</h2>
         </div>
       </section>
 

@@ -1,9 +1,8 @@
 import { useState } from "react";
 import { Link, NavLink } from "react-router-dom";
-import { API_URL } from "../api/client";
 import { useTheme } from "../context/ThemeContext";
-import logoDark from "../assets/logo-dark.png";
-import logoLight from "../assets/logo-light.png";
+import logoDark from "../assets/logo-dark-transparent.png";
+import logoLight from "../assets/logo-light-clean.png";
 import { useAuth } from "../hooks/useAuth";
 import { useCart } from "../hooks/useCart";
 
@@ -20,10 +19,6 @@ const Header = () => {
       <div className="page-shell site-header__inner">
         <Link to="/" className="brand" onClick={closeMenu}>
           <img src={theme === "dark" ? logoDark : logoLight} alt="KyronTech" className="brand__logo" />
-          <div className="brand__copy">
-            <strong>KyronTech</strong>
-            <span>PC parts marketplace</span>
-          </div>
         </Link>
 
         <button
@@ -64,11 +59,8 @@ const Header = () => {
               </>
             ) : (
               <>
-                <a href={`${API_URL}/auth/google`} className="btn btn-outline-secondary btn-shell">
-                  Google
-                </a>
                 <Link to="/login" className="btn btn-outline-secondary btn-shell" onClick={closeMenu}>
-                  Login
+                  Accedi
                 </Link>
                 <Link to="/register" className="btn btn-primary btn-shell btn-shell--primary" onClick={closeMenu}>
                   Registrati
