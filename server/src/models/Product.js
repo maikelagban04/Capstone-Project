@@ -68,47 +68,17 @@ const productSchema = new mongoose.Schema(
     },
     specifications: {
       // Specifiche tecniche generiche per tutti i componenti
+      cores: String,
+      frequency: String,
+      memory: String,
+      speed: String,
+      capacity: String,
+      power: String,
       details: {
         type: Map,
         of: String,
         default: {},
       },
-    },
-    compatibility: {
-      // Informazioni di compatibilità
-      socket: String, // Per CPU
-      chipset: String, // Per Motherboard
-      interface: String, // Per GPU (PCIe x16, etc.)
-      formFactor: String, // Per SSD/HDD (M.2, 2.5", 3.5")
-      memoryType: String, // Per RAM (DDR5, DDR4, etc.)
-      wattage: String, // Per PSU
-      tdp: String, // Thermal Design Power
-    },
-    stock: {
-      type: Number,
-      default: 10,
-      min: 0,
-    },
-    inStock: {
-      type: Boolean,
-      default: function () {
-        return this.stock > 0;
-      },
-    },
-    specifications: {
-      type: {
-        cores: String,
-        frequency: String,
-        memory: String,
-        speed: String,
-        capacity: String,
-        power: String,
-        details: {
-          type: Map,
-          of: String,
-        },
-      },
-      default: () => ({}),
     },
   },
   {
