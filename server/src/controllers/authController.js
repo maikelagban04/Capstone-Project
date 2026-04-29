@@ -1,6 +1,7 @@
 import User from "../models/User.js";
 import { generateToken } from "../utils/generateToken.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
+import { sendWelcomeEmail } from "../utils/emailService.js";
 
 export const buildAuthResponse = (user) => ({
   _id: user._id,
@@ -30,6 +31,8 @@ export const registerUser = asyncHandler(async (req, res) => {
     email,
     password,
   });
+
+  sendWelcomeEmail(user);
 
   res.status(201).json(buildAuthResponse(user));
 });

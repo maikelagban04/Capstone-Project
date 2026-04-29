@@ -2,6 +2,7 @@ import dotenv from "dotenv";
 import passport from "passport";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import User from "../models/User.js";
+import { sendWelcomeEmail } from "../utils/emailService.js";
 
 dotenv.config();
 
@@ -25,6 +26,8 @@ const upsertGoogleUser = async (profile) => {
       avatar,
       authProvider: "google",
     });
+
+    sendWelcomeEmail(user);
 
     return user;
   }

@@ -1,6 +1,7 @@
 import Order from "../models/Order.js";
 import Product from "../models/Product.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
+import { sendOrderConfirmationEmail } from "../utils/emailService.js";
 
 export const createOrder = asyncHandler(async (req, res) => {
   const { items } = req.body;
@@ -42,6 +43,8 @@ export const createOrder = asyncHandler(async (req, res) => {
   });
 
   const populatedOrder = await order.populate("user", "name email");
+  sendOrderConfirmationEmail(populatedOrder.user, populatedOrder);
+
   res.status(201).json(populatedOrder);
 });
 
