@@ -1,7 +1,9 @@
 import nodemailer from "nodemailer";
 
+const getEnvValue = (key) => (process.env[key] || "").trim();
+
 const hasSmtpConfig = () =>
-  Boolean(process.env.SMTP_HOST && process.env.SMTP_PORT && process.env.SMTP_USER && process.env.SMTP_PASS);
+  Boolean(getEnvValue("SMTP_HOST") && getEnvValue("SMTP_PORT") && getEnvValue("SMTP_USER") && getEnvValue("SMTP_PASS"));
 
 const getTransporter = () => {
   if (!hasSmtpConfig()) {
@@ -9,12 +11,12 @@ const getTransporter = () => {
   }
 
   return nodemailer.createTransport({
-    host: process.env.SMTP_HOST,
-    port: Number(process.env.SMTP_PORT),
-    secure: process.env.SMTP_SECURE === "true" || Number(process.env.SMTP_PORT) === 465,
+    host: getEnvValue("SMTP_HOST"),
+    port: Number(getEnvValue("SMTP_PORT")),
+    secure: getEnvValue("SMTP_SECURE") === "true" || Number(getEnvValue("SMTP_PORT")) === 465,
     auth: {
-      user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASS,
+      user: getEnvValue("SMTP_USER"),
+      pass: getEnvValue("SMTP_PASS"),
     },
   });
 };
