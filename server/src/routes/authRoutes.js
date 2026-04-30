@@ -1,6 +1,7 @@
 import { Router } from "express";
 import passport from "../config/passport.js";
 import {
+  completeOAuthLogin,
   getCurrentUser,
   handleGoogleAuthSuccess,
   loginUser,
@@ -12,6 +13,7 @@ const router = Router();
 
 router.post("/register", registerUser);
 router.post("/login", loginUser);
+router.post("/oauth/complete", completeOAuthLogin);
 router.get("/me", protect, getCurrentUser);
 router.get(
   "/google",

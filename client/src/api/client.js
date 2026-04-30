@@ -16,11 +16,26 @@ export const apiRequest = async (endpoint, options = {}) => {
     ...options,
   };
 
-  const response = await fetch(`${API_URL}${endpoint}`, config);
-  const data = await response.json().catch(() => []);
+  let response;
+  try {
+    response = await fetch(`${API_URL}${endpoint}`, config);
+  } catch (networkError) {
+    throw new Error(
+      `Network error: ${networkError?.message || "Failed to reach API"}`
+    );
+  }
+
+  const contentType = response.headers.get("content-type") || "";
+  const data = contentType.includes("application/json")
+    ? await response.json().catch(() => null)
+    : await response.text().catch(() => "");
 
   if (!response.ok) {
-    throw new Error(data.message || "Request failed");
+    const message =
+      (typeof data === "object" && data && data.message) ||
+      (typeof data === "string" && data.trim()) ||
+      `Request failed (${response.status})`;
+    throw new Error(message);
   }
 
   return data;

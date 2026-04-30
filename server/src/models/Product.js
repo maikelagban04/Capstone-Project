@@ -80,6 +80,25 @@ const productSchema = new mongoose.Schema(
         default: {},
       },
     },
+    compatibility: {
+      socket: String,
+      chipset: String,
+      interface: String,
+      formFactor: String,
+      memoryType: String,
+      wattage: String,
+      tdp: String,
+    },
+    stock: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+    inStock: {
+      type: Boolean,
+      default: false,
+      index: true,
+    },
   },
   {
     timestamps: true,
@@ -88,6 +107,8 @@ const productSchema = new mongoose.Schema(
 
 productSchema.pre("validate", function syncFinalPrice(next) {
   this.finalPrice = calculateFinalPrice(this.priceBase, this.markup);
+  const numericStock = Number.isFinite(this.stock) ? this.stock : 0;
+  this.inStock = numericStock > 0;
   next();
 });
 

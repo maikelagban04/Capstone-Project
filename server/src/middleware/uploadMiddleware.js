@@ -9,7 +9,6 @@ const storage = new CloudinaryStorage({
     folder: "dropship-store-pro",
     resource_type: "auto",
     allowed_formats: ["jpg", "jpeg", "png", "gif", "webp"],
-    max_file_size: 5 * 1024 * 1024, // 5MB
   },
 });
 

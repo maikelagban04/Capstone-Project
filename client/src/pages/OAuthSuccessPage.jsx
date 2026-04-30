@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
+import { apiRequest } from "../api/client";
 
 const OAuthSuccessPage = () => {
   const navigate = useNavigate();
@@ -10,15 +11,19 @@ const OAuthSuccessPage = () => {
 
   useEffect(() => {
     const finishOAuthLogin = async () => {
-      const token = searchParams.get("token");
+      const code = searchParams.get("code");
 
-      if (!token) {
-        setError("Missing OAuth token.");
+      if (!code) {
+        setError("Missing OAuth code.");
         return;
       }
 
       try {
-        await completeOAuthLogin(token);
+        const data = await apiRequest("/auth/oauth/complete", {
+          method: "POST",
+          body: JSON.stringify({ code }),
+        });
+        await completeOAuthLogin(data.token);
         navigate("/", { replace: true });
       } catch (requestError) {
         setError(requestError.message);

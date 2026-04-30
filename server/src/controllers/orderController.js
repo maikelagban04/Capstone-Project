@@ -4,9 +4,6 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { sendOrderConfirmationEmail } from "../utils/emailService.js";
 
 export const createOrder = asyncHandler(async (req, res) => {
-  console.log("Received request body:", req.body);
-  console.log("User:", req.user);
-  
   const { items } = req.body;
 
   if (!Array.isArray(items) || items.length === 0) {

@@ -12,9 +12,30 @@ dotenv.config();
 
 const app = express();
 
+const defaultAllowedOrigins = ["http://localhost:5173", "http://localhost:3000"];
+const envAllowedOrigins = (process.env.CLIENT_URL || "")
+  .split(",")
+  .map((value) => value.trim())
+  .filter(Boolean);
+const allowedOrigins = [...new Set([...envAllowedOrigins, ...defaultAllowedOrigins])];
+const allowVercelOrigins = process.env.CORS_ALLOW_VERCEL_APP === "true";
+
 app.use(
   cors({
-    origin: process.env.CLIENT_URL || "http://localhost:5173",
+    origin(origin, callback) {
+      // Allow non-browser tools (no Origin header), e.g. curl/Postman
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.includes(origin)) return callback(null, true);
+      if (allowVercelOrigins) {
+        try {
+          const hostname = new URL(origin).hostname;
+          if (hostname.endsWith(".vercel.app")) return callback(null, true);
+        } catch (_error) {
+          // ignore invalid origin parsing
+        }
+      }
+      return callback(new Error(`CORS blocked origin: ${origin}`));
+    },
     credentials: true,
   })
 );

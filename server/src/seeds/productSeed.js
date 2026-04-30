@@ -1,4 +1,3 @@
-import mongoose from "mongoose";
 import dotenv from "dotenv";
 import Product from "../models/Product.js";
 import { connectDatabase } from "../config/db.js";
@@ -413,7 +412,11 @@ async function seedDatabase() {
     console.log("Cleared existing products");
 
     // Insert new products
-    const insertedProducts = await Product.insertMany(products);
+    const preparedProducts = products.map((product) => ({
+      ...product,
+      inStock: (Number(product.stock) || 0) > 0,
+    }));
+    const insertedProducts = await Product.insertMany(preparedProducts);
     console.log(`Successfully seeded ${insertedProducts.length} products`);
 
     process.exit(0);

@@ -4,7 +4,7 @@ export const notFound = (req, res, next) => {
   next(error);
 };
 
-export const errorHandler = (err, req, res, next) => {
+export const errorHandler = (err, req, res, _next) => {
   const statusCode = err.statusCode || res.statusCode || 500;
   const isValidationError = err.name === "ValidationError";
   const isDuplicateKey = err.code === 11000;
