@@ -2,23 +2,50 @@ import nodemailer from "nodemailer";
 
 const getEnvValue = (key) => (process.env[key] || "").trim();
 
-const hasSmtpConfig = () =>
-  Boolean(getEnvValue("SMTP_HOST") && getEnvValue("SMTP_PORT") && getEnvValue("SMTP_USER") && getEnvValue("SMTP_PASS"));
+export const hasSmtpConfig = () =>
+  Boolean(
+    getEnvValue("SMTP_HOST") &&
+      getEnvValue("SMTP_PORT") &&
+      getEnvValue("SMTP_USER") &&
+      getEnvValue("SMTP_PASS")
+  );
+
+const getMissingSmtpKeys = () => {
+  const required = ["SMTP_HOST", "SMTP_PORT", "SMTP_USER", "SMTP_PASS"];
+  return required.filter((key) => !getEnvValue(key));
+};
+
+let cachedTransporter = null;
 
 const getTransporter = () => {
-  if (!hasSmtpConfig()) {
-    return null;
-  }
+  if (!hasSmtpConfig()) return null;
+  if (cachedTransporter) return cachedTransporter;
 
-  return nodemailer.createTransport({
+  const port = Number(getEnvValue("SMTP_PORT"));
+  const secure = getEnvValue("SMTP_SECURE") === "true" || port === 465;
+  const debug = getEnvValue("SMTP_DEBUG") === "true";
+
+  cachedTransporter = nodemailer.createTransport({
     host: getEnvValue("SMTP_HOST"),
-    port: Number(getEnvValue("SMTP_PORT")),
-    secure: getEnvValue("SMTP_SECURE") === "true" || Number(getEnvValue("SMTP_PORT")) === 465,
+    port,
+    secure,
     auth: {
       user: getEnvValue("SMTP_USER"),
       pass: getEnvValue("SMTP_PASS"),
     },
+    // Prevent hanging requests on restrictive hosts.
+    connectionTimeout: 10_000,
+    greetingTimeout: 10_000,
+    socketTimeout: 20_000,
+    ...(debug
+      ? {
+          logger: true,
+          debug: true,
+        }
+      : {}),
   });
+
+  return cachedTransporter;
 };
 
 const escapeHtml = (value = "") =>
@@ -39,22 +66,33 @@ const sendEmail = async ({ to, subject, text, html }) => {
   const transporter = getTransporter();
 
   if (!transporter) {
-    console.warn("Email skipped: SMTP configuration is missing.");
+    const missing = getMissingSmtpKeys();
+    console.warn(
+      `Email skipped: SMTP configuration is missing (${missing.join(", ")}).`
+    );
     return;
   }
 
-  await transporter.sendMail({
+  const info = await transporter.sendMail({
     from: process.env.SMTP_FROM || process.env.SMTP_USER,
     to,
     subject,
     text,
     html,
   });
+  return info;
 };
 
 const sendSafely = (emailPromise) => {
   emailPromise.catch((error) => {
-    console.error("Email delivery failed:", error.message);
+    const details = [
+      error?.message,
+      error?.code ? `code=${error.code}` : null,
+      error?.response ? `response=${error.response}` : null,
+    ]
+      .filter(Boolean)
+      .join(" ");
+    console.error("Email delivery failed:", details || "Unknown error");
   });
 };
 
