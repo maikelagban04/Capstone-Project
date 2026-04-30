@@ -4,7 +4,7 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { sendOrderConfirmationEmail } from "../utils/emailService.js";
 
 export const createOrder = asyncHandler(async (req, res) => {
-  const { items } = req.body;
+  const { items } = req.body ?? {};
 
   if (!Array.isArray(items) || items.length === 0) {
     return res.status(400).json({ message: "Order items are required" });

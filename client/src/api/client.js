@@ -9,11 +9,12 @@ const API_URL = normalizeApiUrl(rawApiUrl);
 
 export const apiRequest = async (endpoint, options = {}) => {
   const config = {
+    ...options,
     headers: {
+      // Keep JSON default, but allow caller to override explicitly if needed
       "Content-Type": "application/json",
       ...(options.headers || {}),
     },
-    ...options,
   };
 
   let response;
