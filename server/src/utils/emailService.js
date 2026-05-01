@@ -1,4 +1,7 @@
 import nodemailer from "nodemailer";
+import { hasSendGridConfig, sendViaSendGrid } from "./sendgridMail.js";
+
+export { hasSendGridConfig };
 
 const getEnvValue = (key) => (process.env[key] || "").trim();
 
@@ -31,7 +34,7 @@ const getTransporter = () => {
     secure,
     auth: {
       user: getEnvValue("SMTP_USER"),
-      pass: getEnvValue("SMTP_PASS"),
+      pass: getEnvValue("SMTP_PASS").replace(/\s+/g, ""),
     },
     // Prevent hanging requests on restrictive hosts.
     connectionTimeout: 10_000,
@@ -63,12 +66,16 @@ const formatCurrency = (value) =>
   }).format(Number(value) || 0);
 
 const sendEmail = async ({ to, subject, text, html }) => {
+  if (hasSendGridConfig()) {
+    return sendViaSendGrid({ to, subject, text, html });
+  }
+
   const transporter = getTransporter();
 
   if (!transporter) {
     const missing = getMissingSmtpKeys();
     console.warn(
-      `Email skipped: SMTP configuration is missing (${missing.join(", ")}).`
+      `Email skipped: SendGrid not configured and SMTP is incomplete (${missing.join(", ")}).`
     );
     return;
   }

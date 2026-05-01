@@ -8,6 +8,9 @@ describe("GET /api/health", () => {
     const res = await request(app).get("/api/health");
     expect(res.status).toBe(200);
     expect(res.body).toHaveProperty("message");
+    expect(res.body).toHaveProperty("smtpConfigured");
+    expect(res.body).toHaveProperty("sendgridConfigured");
+    expect(res.body).toHaveProperty("mailFromConfigured");
   });
 });
 

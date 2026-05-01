@@ -8,6 +8,7 @@ import orderRoutes from "./routes/orderRoutes.js";
 import productRoutes from "./routes/productRoutes.js";
 import { errorHandler, notFound } from "./middleware/errorMiddleware.js";
 import { hasSmtpConfig } from "./utils/emailService.js";
+import { hasSendGridConfig, getMailFrom } from "./utils/sendgridMail.js";
 
 dotenv.config();
 
@@ -45,9 +46,12 @@ app.use(morgan("dev"));
 app.use(passport.initialize());
 
 app.get("/api/health", (req, res) => {
+  const mailFrom = getMailFrom();
   res.json({
     message: "Dropship Store Pro API is running",
     smtpConfigured: hasSmtpConfig(),
+    sendgridConfigured: hasSendGridConfig(),
+    mailFromConfigured: Boolean(mailFrom?.email),
   });
 });
 
