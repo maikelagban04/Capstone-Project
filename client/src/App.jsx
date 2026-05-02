@@ -16,6 +16,7 @@ import ProfilePage from "./pages/ProfilePage";
 import OrdersPage from "./pages/OrdersPage";
 import AdminDashboardPage from "./pages/AdminDashboardPage";
 import InventoryAdminPage from "./pages/InventoryAdminPage";
+import UsersAdminPage from "./pages/UsersAdminPage";
 import NotFoundPage from "./pages/NotFoundPage";
 import OAuthSuccessPage from "./pages/OAuthSuccessPage";
 
@@ -63,6 +64,14 @@ const App = () => {
               <SuperAdminRoute>
                 <InventoryAdminPage />
               </SuperAdminRoute>
+            }
+          />
+          <Route
+            path="/admin/users"
+            element={
+              <AdminRoute>
+                <UsersAdminPage />
+              </AdminRoute>
             }
           />
           <Route path="/home" element={<Navigate to="/" replace />} />

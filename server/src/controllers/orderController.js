@@ -10,59 +10,82 @@ export const createOrder = asyncHandler(async (req, res) => {
     return res.status(400).json({ message: "Order items are required" });
   }
 
-  // Carica e valida tutti i prodotti, controllando lo stock disponibile.
-  const productMap = new Map();
-  const normalizedItems = await Promise.all(
-    items.map(async (item) => {
-      const product = await Product.findById(item.productId);
+  // Pre-carica i prodotti per validazione base (esistenza + metadata).
+  // Il check di stock NON è qui: lo facciamo atomicamente più sotto via $inc condizionato.
+  const normalizedItems = [];
+  const decrements = []; // per eventuale rollback
 
-      if (!product) {
-        throw Object.assign(new Error(`Product not found: ${item.productId}`), { statusCode: 404 });
-      }
+  for (const item of items) {
+    const product = await Product.findById(item.productId);
 
-      const quantity = Number(item.quantity) || 1;
+    if (!product) {
+      throw Object.assign(new Error(`Product not found: ${item.productId}`), { statusCode: 404 });
+    }
 
-      if (product.stock < quantity) {
-        throw Object.assign(
-          new Error(`Insufficient stock for "${product.title}" (richiesti ${quantity}, disponibili ${product.stock})`),
-          { statusCode: 400 }
-        );
-      }
+    const quantity = Number(item.quantity) || 1;
 
-      productMap.set(String(product._id), { product, quantity });
+    // Decremento atomico: passa solo se lo stock corrente è ≥ quantity.
+    // Evita race condition tra ordini paralleli sullo stesso prodotto.
+    const updated = await Product.findOneAndUpdate(
+      { _id: product._id, stock: { $gte: quantity } },
+      { $inc: { stock: -quantity } },
+      { new: true },
+    );
 
-      const unitPrice = product.isOnSale && product.salePrice
-        ? product.salePrice
-        : product.finalPrice;
+    if (!updated) {
+      // Rollback delle decrementazioni già applicate in questo ordine.
+      await Promise.all(
+        decrements.map(({ productId, quantity: q }) =>
+          Product.findByIdAndUpdate(productId, { $inc: { stock: q } }),
+        ),
+      );
+      throw Object.assign(
+        new Error(`Insufficient stock for "${product.title}" (richiesti ${quantity}, disponibili ${product.stock})`),
+        { statusCode: 400 },
+      );
+    }
 
-      return {
-        product: product._id,
-        title: product.title,
-        image: product.image,
-        quantity,
-        unitPrice,
-        subtotal: Number((unitPrice * quantity).toFixed(2)),
-      };
-    })
-  );
+    decrements.push({ productId: product._id, quantity });
+
+    // Ricalcola inStock coerentemente allo stock residuo (il $inc bypassa il pre-validate).
+    if (updated.stock === 0 && updated.inStock) {
+      await Product.findByIdAndUpdate(updated._id, { inStock: false });
+    }
+
+    const unitPrice = product.isOnSale && product.salePrice
+      ? product.salePrice
+      : product.finalPrice;
+
+    normalizedItems.push({
+      product: product._id,
+      title: product.title,
+      image: product.image,
+      quantity,
+      unitPrice,
+      subtotal: Number((unitPrice * quantity).toFixed(2)),
+    });
+  }
 
   const totalAmount = Number(
-    normalizedItems.reduce((sum, item) => sum + item.subtotal, 0).toFixed(2)
+    normalizedItems.reduce((sum, item) => sum + item.subtotal, 0).toFixed(2),
   );
 
-  const order = await Order.create({
-    user: req.user._id,
-    items: normalizedItems,
-    totalAmount,
-  });
-
-  // Decrementa lo stock di ogni prodotto e aggiorna inStock se necessario.
-  await Promise.all(
-    Array.from(productMap.values()).map(async ({ product, quantity }) => {
-      product.stock = Math.max(0, product.stock - quantity);
-      await product.save();
-    })
-  );
+  let order;
+  try {
+    order = await Order.create({
+      user: req.user._id,
+      items: normalizedItems,
+      totalAmount,
+    });
+  } catch (orderError) {
+    // Se la creazione ordine fallisce, rollback stock per non perdere inventario.
+    await Promise.all(
+      decrements.map(({ productId, quantity }) =>
+        Product.findByIdAndUpdate(productId, { $inc: { stock: quantity } }),
+      ),
+    );
+    throw orderError;
+  }
 
   const populatedOrder = await order.populate("user", "name email");
   sendOrderConfirmationEmail(populatedOrder.user, populatedOrder);

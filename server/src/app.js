@@ -6,6 +6,7 @@ import passport from "./config/passport.js";
 import authRoutes from "./routes/authRoutes.js";
 import orderRoutes from "./routes/orderRoutes.js";
 import productRoutes from "./routes/productRoutes.js";
+import userRoutes from "./routes/userRoutes.js";
 import { errorHandler, notFound } from "./middleware/errorMiddleware.js";
 import { hasSmtpConfig } from "./utils/emailService.js";
 import { hasSendGridConfig, getMailFrom } from "./utils/sendgridMail.js";
@@ -59,6 +60,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/products", productRoutes);
 app.use("/products", productRoutes); // fallback alias for legacy or misconfigured frontend URLs
 app.use("/api/orders", orderRoutes);
+app.use("/api/users", userRoutes);
 
 app.use(notFound);
 app.use(errorHandler);

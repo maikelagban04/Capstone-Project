@@ -1,14 +1,39 @@
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { apiRequest } from "../api/client";
 import { useAuth } from "../hooks/useAuth";
-import { BoxIcon, LogoutIcon, SettingsIcon, UserIcon } from "../components/icons";
+import { BoxIcon, LogoutIcon, SettingsIcon, TrashIcon, UserIcon } from "../components/icons";
 
 const ProfilePage = () => {
   const navigate = useNavigate();
-  const { auth, logout } = useAuth();
+  const { auth, isAdmin, logout } = useAuth();
+  const [deleting, setDeleting] = useState(false);
+  const [error, setError] = useState("");
 
   const handleLogout = () => {
     logout();
     navigate("/");
+  };
+
+  const handleDeleteAccount = async () => {
+    const confirmed = window.confirm(
+      "Eliminare definitivamente l'account? Questa azione rimuove anche lo storico degli ordini e non può essere annullata.",
+    );
+    if (!confirmed) return;
+
+    try {
+      setDeleting(true);
+      setError("");
+      await apiRequest("/users/me", {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${auth.token}` },
+      });
+      logout();
+      navigate("/");
+    } catch (requestError) {
+      setError(requestError.message);
+      setDeleting(false);
+    }
   };
 
   return (
@@ -44,6 +69,27 @@ const ProfilePage = () => {
           <span>Logout</span>
         </button>
       </section>
+
+      {!isAdmin ? (
+        <section className="account-danger">
+          <div>
+            <h3>Elimina account</h3>
+            <p>
+              Questa azione rimuove il tuo profilo e tutta la cronologia ordini. Non potrà essere annullata.
+            </p>
+            {error ? <p className="error-text">{error}</p> : null}
+          </div>
+          <button
+            type="button"
+            className="btn-shell account-danger__btn"
+            onClick={handleDeleteAccount}
+            disabled={deleting}
+          >
+            <TrashIcon />
+            <span>{deleting ? "Eliminazione..." : "Elimina account"}</span>
+          </button>
+        </section>
+      ) : null}
     </div>
   );
 };

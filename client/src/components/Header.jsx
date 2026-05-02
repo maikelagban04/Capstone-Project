@@ -58,6 +58,7 @@ const Header = () => {
             <NavLink to="/" end onClick={closeMenu}>Home</NavLink>
             <NavLink to="/catalog" onClick={closeMenu}>Catalogo</NavLink>
             {isAdmin ? <NavLink to="/admin" onClick={closeMenu}>Dashboard</NavLink> : null}
+            {isAdmin ? <NavLink to="/admin/users" onClick={closeMenu}>Utenti</NavLink> : null}
             {isSuperAdmin ? <NavLink to="/admin/inventory" onClick={closeMenu}>Inventario</NavLink> : null}
           </nav>
 

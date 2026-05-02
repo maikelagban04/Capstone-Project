@@ -14,6 +14,8 @@ const emptyForm = {
   brand: "",
   model: "",
   stock: "0",
+  isOnSale: false,
+  salePrice: "",
   specificationsJson: "{}",
   compatibilityJson: "{}",
 };
@@ -90,6 +92,9 @@ const AdminDashboardPage = () => {
         brand: form.brand,
         model: form.model,
         stock: Number(form.stock),
+        isOnSale: Boolean(form.isOnSale),
+        salePrice:
+          form.isOnSale && form.salePrice !== "" ? Number(form.salePrice) : null,
         specifications: parseJsonInput(form.specificationsJson, "Specifications"),
         compatibility: parseJsonInput(form.compatibilityJson, "Compatibility"),
       };
@@ -121,6 +126,8 @@ const AdminDashboardPage = () => {
       brand: product.brand,
       model: product.model,
       stock: String(product.stock ?? 0),
+      isOnSale: Boolean(product.isOnSale),
+      salePrice: product.salePrice != null ? String(product.salePrice) : "",
       specificationsJson: stringifyJsonInput(product.specifications),
       compatibilityJson: stringifyJsonInput(product.compatibility),
     });
@@ -212,6 +219,31 @@ const AdminDashboardPage = () => {
             <div className="col-md-4">
               <input type="number" className="form-control" placeholder="Stock" value={form.stock} onChange={(event) => setForm({ ...form, stock: event.target.value })} required />
             </div>
+            <div className="col-md-4 d-flex align-items-center">
+              <label className="inventory-toggle" style={{ width: "100%" }}>
+                <input
+                  type="checkbox"
+                  checked={form.isOnSale}
+                  onChange={(event) =>
+                    setForm({ ...form, isOnSale: event.target.checked })
+                  }
+                />
+                <span>In sconto</span>
+              </label>
+            </div>
+            <div className="col-md-4">
+              <input
+                type="number"
+                step="0.01"
+                min="0"
+                className="form-control"
+                placeholder="Prezzo scontato (€)"
+                value={form.salePrice}
+                onChange={(event) => setForm({ ...form, salePrice: event.target.value })}
+                disabled={!form.isOnSale}
+              />
+            </div>
+            <div className="col-md-4" />
             <div className="col-12">
               <input type="url" className="form-control" placeholder="Image URL" value={form.image} onChange={(event) => setForm({ ...form, image: event.target.value })} required />
             </div>

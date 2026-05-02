@@ -30,6 +30,6 @@ router.post("/upload", protect, adminOnly, upload.single("image"), handleUploadE
 router.post("/", protect, adminOnly, createProduct);
 router.put("/:id", protect, adminOnly, updateProduct);
 router.patch("/:id/inventory", protect, superAdminOnly, updateProductInventory);
-router.delete("/:id", protect, superAdminOnly, deleteProduct);
+router.delete("/:id", protect, adminOnly, deleteProduct);
 
 export default router;
