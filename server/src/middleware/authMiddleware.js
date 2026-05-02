@@ -35,3 +35,21 @@ export const adminOnly = (req, res, next) => {
 
   next();
 };
+
+const SUPER_ADMIN_FALLBACK = "maikelagban04@gmail.com";
+
+export const getSuperAdminEmail = () =>
+  (process.env.SUPER_ADMIN_EMAIL || SUPER_ADMIN_FALLBACK).trim().toLowerCase();
+
+export const superAdminOnly = (req, res, next) => {
+  if (!req.user || req.user.role !== "admin") {
+    return res.status(403).json({ message: "Admin access required" });
+  }
+
+  const userEmail = (req.user.email || "").trim().toLowerCase();
+  if (userEmail !== getSuperAdminEmail()) {
+    return res.status(403).json({ message: "Super admin access required" });
+  }
+
+  next();
+};

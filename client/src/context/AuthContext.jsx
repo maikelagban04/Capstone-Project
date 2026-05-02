@@ -3,6 +3,17 @@ import { apiRequest } from "../api/client";
 import { AuthContext } from "./auth-context";
 const STORAGE_KEY = "dropship-store-pro-auth";
 
+const SUPER_ADMIN_EMAIL = (
+  import.meta.env.VITE_SUPER_ADMIN_EMAIL || "maikelagban04@gmail.com"
+)
+  .trim()
+  .toLowerCase();
+
+const computeSuperAdmin = (user) => {
+  if (!user || user.role !== "admin") return false;
+  return (user.email || "").trim().toLowerCase() === SUPER_ADMIN_EMAIL;
+};
+
 export const AuthProvider = ({ children }) => {
   const [auth, setAuth] = useState(() => {
     const storedValue = localStorage.getItem(STORAGE_KEY);
@@ -92,6 +103,7 @@ export const AuthProvider = ({ children }) => {
         loading,
         isAuthenticated: Boolean(auth?.token),
         isAdmin: auth?.role === "admin",
+        isSuperAdmin: computeSuperAdmin(auth),
         login,
         register,
         refreshProfile,

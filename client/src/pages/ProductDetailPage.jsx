@@ -46,12 +46,19 @@ const ProductDetailPage = () => {
 
   const specificationEntries = getSpecificationEntries(product);
   const compatibilityEntries = getCompatibilityEntries(product);
+  const finalPrice = Number(product.finalPrice || 0);
+  const salePrice = Number(product.salePrice || 0);
+  const isOnSale = Boolean(product.isOnSale) && salePrice > 0 && salePrice < finalPrice;
+  const displayPrice = isOnSale ? salePrice : finalPrice;
+  const outOfStock = !product.inStock;
 
   return (
     <div className="page-stack">
-      <section className="product-layout">
+      <section className={`product-layout ${outOfStock ? "is-out-of-stock" : ""}`}>
         <div className="product-view">
           <img src={product.image} alt={product.title} className="product-view__image" />
+          {outOfStock ? <span className="product-view__overlay">OUT OF STOCK</span> : null}
+          {isOnSale ? <span className="product-view__sale">In sconto</span> : null}
         </div>
 
         <aside className="product-summary">
@@ -62,12 +69,12 @@ const ProductDetailPage = () => {
 
           <div className="product-summary__stats">
             <div>
-              <small>Prezzo finale</small>
-              <strong>€ {product.finalPrice.toFixed(2)}</strong>
+              <small>{isOnSale ? "Prezzo scontato" : "Prezzo finale"}</small>
+              <strong>€ {displayPrice.toFixed(2)}</strong>
             </div>
             <div>
-              <small>Prezzo base</small>
-              <strong>€ {product.priceBase.toFixed(2)}</strong>
+              <small>{isOnSale ? "Prezzo originale" : "Prezzo base"}</small>
+              <strong>€ {(isOnSale ? finalPrice : product.priceBase).toFixed(2)}</strong>
             </div>
             <div>
               <small>Markup</small>
@@ -86,10 +93,10 @@ const ProductDetailPage = () => {
             <button
               type="button"
               className="btn btn-primary btn-shell btn-shell--primary"
-              onClick={() => addToCart(product)}
-              disabled={!product.inStock}
+              onClick={() => addToCart({ ...product, finalPrice: displayPrice })}
+              disabled={outOfStock}
             >
-              {product.inStock ? "Aggiungi al carrello" : "Non disponibile"}
+              {outOfStock ? "Non disponibile" : "Aggiungi al carrello"}
             </button>
           </div>
         </aside>

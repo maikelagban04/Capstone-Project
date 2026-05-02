@@ -5,9 +5,10 @@ import {
   getProductById,
   getProducts,
   updateProduct,
+  updateProductInventory,
   getFilterOptions,
 } from "../controllers/productController.js";
-import { adminOnly, protect } from "../middleware/authMiddleware.js";
+import { adminOnly, protect, superAdminOnly } from "../middleware/authMiddleware.js";
 import { upload, handleUploadError } from "../middleware/uploadMiddleware.js";
 
 const router = Router();
@@ -28,6 +29,7 @@ router.post("/upload", protect, adminOnly, upload.single("image"), handleUploadE
 });
 router.post("/", protect, adminOnly, createProduct);
 router.put("/:id", protect, adminOnly, updateProduct);
-router.delete("/:id", protect, adminOnly, deleteProduct);
+router.patch("/:id/inventory", protect, superAdminOnly, updateProductInventory);
+router.delete("/:id", protect, superAdminOnly, deleteProduct);
 
 export default router;

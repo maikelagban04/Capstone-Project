@@ -10,7 +10,7 @@ import { BoxIcon, CartIcon, MoonIcon, SunIcon, UserIcon } from "./icons";
 const Header = () => {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
-  const { auth, isAdmin, logout } = useAuth();
+  const { auth, isAdmin, isSuperAdmin, logout } = useAuth();
   const { cartItems, openCart } = useCart();
   const { theme, toggleTheme } = useTheme();
 
@@ -58,6 +58,7 @@ const Header = () => {
             <NavLink to="/" end onClick={closeMenu}>Home</NavLink>
             <NavLink to="/catalog" onClick={closeMenu}>Catalogo</NavLink>
             {isAdmin ? <NavLink to="/admin" onClick={closeMenu}>Dashboard</NavLink> : null}
+            {isSuperAdmin ? <NavLink to="/admin/inventory" onClick={closeMenu}>Inventario</NavLink> : null}
           </nav>
 
           <div className="site-header__actions">

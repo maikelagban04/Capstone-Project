@@ -102,6 +102,8 @@ export const createProduct = asyncHandler(async (req, res) => {
     specifications,
     compatibility,
     stock,
+    isOnSale,
+    salePrice,
   } = req.body;
 
   const product = await Product.create({
@@ -117,6 +119,8 @@ export const createProduct = asyncHandler(async (req, res) => {
     specifications,
     compatibility,
     stock,
+    isOnSale: Boolean(isOnSale),
+    salePrice: salePrice !== undefined && salePrice !== "" ? Number(salePrice) : null,
   });
 
   res.status(201).json(product);
@@ -142,6 +146,8 @@ export const updateProduct = asyncHandler(async (req, res) => {
     "specifications",
     "compatibility",
     "stock",
+    "isOnSale",
+    "salePrice",
   ];
 
   fields.forEach((field) => {
@@ -163,4 +169,36 @@ export const deleteProduct = asyncHandler(async (req, res) => {
 
   await product.deleteOne();
   res.json({ message: "Product removed successfully" });
+});
+
+// Lightweight inventory update for the super-admin dashboard.
+// Permette di aggiornare solo prezzo, stock e flag sconto senza re-inviare l'intero documento.
+export const updateProductInventory = asyncHandler(async (req, res) => {
+  const product = await Product.findById(req.params.id);
+
+  if (!product) {
+    return res.status(404).json({ message: "Product not found" });
+  }
+
+  const { priceBase, markup, stock, isOnSale, salePrice } = req.body;
+
+  if (priceBase !== undefined && priceBase !== "") {
+    product.priceBase = Number(priceBase);
+  }
+  if (markup !== undefined && markup !== "") {
+    product.markup = Number(markup);
+  }
+  if (stock !== undefined && stock !== "") {
+    product.stock = Math.max(0, Number(stock));
+  }
+  if (isOnSale !== undefined) {
+    product.isOnSale = Boolean(isOnSale);
+  }
+  if (salePrice !== undefined) {
+    product.salePrice =
+      salePrice === null || salePrice === "" ? null : Number(salePrice);
+  }
+
+  const updated = await product.save();
+  res.json(updated);
 });

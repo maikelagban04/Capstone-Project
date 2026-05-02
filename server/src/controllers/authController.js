@@ -3,6 +3,7 @@ import jwt from "jsonwebtoken";
 import { generateToken } from "../utils/generateToken.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { sendWelcomeEmail } from "../utils/emailService.js";
+import { getSuperAdminEmail } from "../middleware/authMiddleware.js";
 
 export const buildAuthResponse = (user) => ({
   _id: user._id,
@@ -21,7 +22,15 @@ export const registerUser = asyncHandler(async (req, res) => {
     return res.status(400).json({ message: "Name, email and password are required" });
   }
 
-  const existingUser = await User.findOne({ email: email.toLowerCase() });
+  const normalizedEmail = email.toLowerCase().trim();
+
+  // Guard anti-squatting: l'email del super admin è riservata e non può essere
+  // registrata tramite signup pubblico. Il record viene creato solo via seed.
+  if (normalizedEmail === getSuperAdminEmail()) {
+    return res.status(403).json({ message: "This email is reserved" });
+  }
+
+  const existingUser = await User.findOne({ email: normalizedEmail });
 
   if (existingUser) {
     return res.status(400).json({ message: "User already exists" });

@@ -99,6 +99,16 @@ const productSchema = new mongoose.Schema(
       default: false,
       index: true,
     },
+    isOnSale: {
+      type: Boolean,
+      default: false,
+      index: true,
+    },
+    salePrice: {
+      type: Number,
+      default: null,
+      min: 0,
+    },
   },
   {
     timestamps: true,
@@ -109,6 +119,14 @@ productSchema.pre("validate", function syncFinalPrice(next) {
   this.finalPrice = calculateFinalPrice(this.priceBase, this.markup);
   const numericStock = Number.isFinite(this.stock) ? this.stock : 0;
   this.inStock = numericStock > 0;
+  if (!this.isOnSale || !Number.isFinite(this.salePrice) || this.salePrice <= 0) {
+    this.salePrice = null;
+    this.isOnSale = false;
+  } else if (this.salePrice >= this.finalPrice) {
+    // Sale price must be strictly lower than the regular price
+    this.salePrice = null;
+    this.isOnSale = false;
+  }
   next();
 });
 

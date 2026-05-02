@@ -10,6 +10,8 @@ export const createOrder = asyncHandler(async (req, res) => {
     return res.status(400).json({ message: "Order items are required" });
   }
 
+  // Carica e valida tutti i prodotti, controllando lo stock disponibile.
+  const productMap = new Map();
   const normalizedItems = await Promise.all(
     items.map(async (item) => {
       const product = await Product.findById(item.productId);
@@ -19,7 +21,19 @@ export const createOrder = asyncHandler(async (req, res) => {
       }
 
       const quantity = Number(item.quantity) || 1;
-      const unitPrice = product.finalPrice;
+
+      if (product.stock < quantity) {
+        throw Object.assign(
+          new Error(`Insufficient stock for "${product.title}" (richiesti ${quantity}, disponibili ${product.stock})`),
+          { statusCode: 400 }
+        );
+      }
+
+      productMap.set(String(product._id), { product, quantity });
+
+      const unitPrice = product.isOnSale && product.salePrice
+        ? product.salePrice
+        : product.finalPrice;
 
       return {
         product: product._id,
@@ -41,6 +55,14 @@ export const createOrder = asyncHandler(async (req, res) => {
     items: normalizedItems,
     totalAmount,
   });
+
+  // Decrementa lo stock di ogni prodotto e aggiorna inStock se necessario.
+  await Promise.all(
+    Array.from(productMap.values()).map(async ({ product, quantity }) => {
+      product.stock = Math.max(0, product.stock - quantity);
+      await product.save();
+    })
+  );
 
   const populatedOrder = await order.populate("user", "name email");
   sendOrderConfirmationEmail(populatedOrder.user, populatedOrder);
