@@ -154,3 +154,34 @@ export const MailIcon = (props) => (
     <path d="m22 6-10 7L2 6" />
   </svg>
 );
+
+export const ArrowRightIcon = (props) => (
+  <svg {...baseProps} {...props}>
+    <path d="M5 12h14M13 5l7 7-7 7" />
+  </svg>
+);
+
+export const ShieldIcon = (props) => (
+  <svg {...baseProps} {...props}>
+    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z" />
+  </svg>
+);
+
+export const TrendingUpIcon = (props) => (
+  <svg {...baseProps} {...props}>
+    <path d="m22 7-8.5 8.5-5-5L2 17" />
+    <path d="M16 7h6v6" />
+  </svg>
+);
+
+export const StarIcon = ({ filled = false, ...props }) => (
+  <svg {...baseProps} {...props} fill={filled ? "currentColor" : "none"}>
+    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2Z" />
+  </svg>
+);
+
+export const QuoteIcon = (props) => (
+  <svg {...baseProps} {...props} fill="currentColor" stroke="none">
+    <path d="M3 21c3 0 5-2 5-6V7H2v6h3c0 2-1 3-2 3v5Zm14 0c3 0 5-2 5-6V7h-6v6h3c0 2-1 3-2 3v5Z" />
+  </svg>
+);
