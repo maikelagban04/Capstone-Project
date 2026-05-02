@@ -1,7 +1,10 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { apiRequest } from "../api/client";
 import { useCart } from "../hooks/useCart";
+import { useWishlist } from "../hooks/useWishlist";
+import { useAuth } from "../hooks/useAuth";
+import { HeartIcon } from "../components/icons";
 import {
   formatKeyLabel,
   getCompatibilityEntries,
@@ -11,10 +14,26 @@ import {
 
 const ProductDetailPage = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const { addToCart } = useCart();
+  const { isAuthenticated } = useAuth();
+  const wishlist = useWishlist();
+  const inWishlist = wishlist?.isInWishlist?.(id) || false;
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+  const handleWishlistToggle = async () => {
+    if (!isAuthenticated) {
+      navigate("/login");
+      return;
+    }
+    try {
+      await wishlist?.toggleWishlist?.(id);
+    } catch (err) {
+      console.error("Wishlist toggle failed", err);
+    }
+  };
 
   useEffect(() => {
     const loadProduct = async () => {
@@ -97,6 +116,16 @@ const ProductDetailPage = () => {
               disabled={outOfStock}
             >
               {outOfStock ? "Non disponibile" : "Aggiungi al carrello"}
+            </button>
+            <button
+              type="button"
+              className={`btn-shell btn-shell--ghost product-summary__wishlist ${inWishlist ? "is-active" : ""}`}
+              onClick={handleWishlistToggle}
+              aria-label={inWishlist ? "Rimuovi dalla wishlist" : "Aggiungi alla wishlist"}
+              title={inWishlist ? "Rimuovi dalla wishlist" : "Aggiungi alla wishlist"}
+            >
+              <HeartIcon filled={inWishlist} />
+              <span>{inWishlist ? "Salvato" : "Wishlist"}</span>
             </button>
           </div>
         </aside>

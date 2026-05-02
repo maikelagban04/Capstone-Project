@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { apiRequest } from "../api/client";
 import ProductCard from "../components/ProductCard";
+import { CpuIcon, ZapIcon } from "../components/icons";
 
 const HomePage = () => {
   const [products, setProducts] = useState([]);
@@ -110,6 +111,30 @@ const HomePage = () => {
           ))}
         </section>
       ) : null}
+
+      <section className="home-builder-cta">
+        <div className="home-builder-cta__icon" aria-hidden="true">
+          <CpuIcon />
+        </div>
+        <div className="home-builder-cta__body">
+          <span className="section-kicker">
+            <ZapIcon /> Tool
+          </span>
+          <h2>Costruisci il tuo PC con il configuratore.</h2>
+          <p>
+            Scegli CPU, scheda madre, GPU e tutto il resto: verifichiamo automaticamente
+            socket, memoria e wattaggio per assicurarci che la build sia compatibile.
+          </p>
+          <div className="hero__actions">
+            <Link to="/pc-builder" className="btn btn-primary btn-shell btn-shell--primary">
+              Apri PC Builder
+            </Link>
+            <Link to="/support" className="btn btn-outline-secondary btn-shell">
+              Serve aiuto?
+            </Link>
+          </div>
+        </div>
+      </section>
     </div>
   );
 };

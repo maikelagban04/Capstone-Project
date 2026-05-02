@@ -5,16 +5,47 @@ import logoDark from "../assets/logo-dark-transparent.png";
 import logoLight from "../assets/logo-light-clean.png";
 import { useAuth } from "../hooks/useAuth";
 import { useCart } from "../hooks/useCart";
-import { BoxIcon, CartIcon, MoonIcon, SunIcon, UserIcon } from "./icons";
+import { useWishlist } from "../hooks/useWishlist";
+import {
+  BoxIcon,
+  CartIcon,
+  ChevronDownIcon,
+  HeartIcon,
+  MoonIcon,
+  SunIcon,
+  UserIcon,
+} from "./icons";
+
+const CATEGORIES = [
+  { key: "CPU", label: "Processori" },
+  { key: "GPU", label: "Schede video" },
+  { key: "Motherboard", label: "Schede madri" },
+  { key: "RAM", label: "Memorie RAM" },
+  { key: "SSD", label: "Storage SSD" },
+  { key: "PSU", label: "Alimentatori" },
+  { key: "Cooling", label: "Raffreddamento" },
+  { key: "Case", label: "Case" },
+];
 
 const Header = () => {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
+  const [categoriesOpen, setCategoriesOpen] = useState(false);
   const { auth, isAdmin, isSuperAdmin, logout } = useAuth();
   const { cartItems, openCart } = useCart();
+  const wishlist = useWishlist();
+  const wishlistCount = wishlist?.items?.length || 0;
   const { theme, toggleTheme } = useTheme();
 
-  const closeMenu = () => setOpen(false);
+  const closeMenu = () => {
+    setOpen(false);
+    setCategoriesOpen(false);
+  };
+
+  const goToCategory = (componentType) => {
+    closeMenu();
+    navigate(`/catalog?componentType=${encodeURIComponent(componentType)}`);
+  };
 
   const handleProfileClick = () => {
     closeMenu();
@@ -56,7 +87,36 @@ const Header = () => {
         <div className={`site-header__panel ${open ? "is-open" : ""}`}>
           <nav className="site-nav">
             <NavLink to="/" end onClick={closeMenu}>Home</NavLink>
+            <div
+              className="site-nav__dropdown"
+              onMouseEnter={() => setCategoriesOpen(true)}
+              onMouseLeave={() => setCategoriesOpen(false)}
+            >
+              <button
+                type="button"
+                className="site-nav__dropdown-trigger"
+                onClick={() => setCategoriesOpen((prev) => !prev)}
+                aria-expanded={categoriesOpen}
+              >
+                Categorie <ChevronDownIcon />
+              </button>
+              {categoriesOpen ? (
+                <div className="site-nav__dropdown-panel">
+                  {CATEGORIES.map((cat) => (
+                    <button
+                      key={cat.key}
+                      type="button"
+                      onClick={() => goToCategory(cat.key)}
+                    >
+                      {cat.label}
+                    </button>
+                  ))}
+                </div>
+              ) : null}
+            </div>
             <NavLink to="/catalog" onClick={closeMenu}>Catalogo</NavLink>
+            <NavLink to="/pc-builder" onClick={closeMenu}>PC Builder</NavLink>
+            <NavLink to="/support" onClick={closeMenu}>Supporto</NavLink>
             {isAdmin ? <NavLink to="/admin" onClick={closeMenu}>Dashboard</NavLink> : null}
             {isAdmin ? <NavLink to="/admin/users" onClick={closeMenu}>Utenti</NavLink> : null}
             {isSuperAdmin ? <NavLink to="/admin/inventory" onClick={closeMenu}>Inventario</NavLink> : null}
@@ -81,6 +141,22 @@ const Header = () => {
               title="Ordini"
             >
               <BoxIcon />
+            </button>
+
+            <button
+              type="button"
+              className="icon-btn icon-btn--wishlist"
+              onClick={() => {
+                closeMenu();
+                navigate(auth ? "/wishlist" : "/login");
+              }}
+              aria-label="Wishlist"
+              title="Wishlist"
+            >
+              <HeartIcon filled={wishlistCount > 0} />
+              {wishlistCount > 0 ? (
+                <span className="icon-btn__badge">{wishlistCount}</span>
+              ) : null}
             </button>
 
             <button

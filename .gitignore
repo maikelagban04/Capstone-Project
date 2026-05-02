@@ -31,6 +31,7 @@ yarn-error.log*
 # OS
 Thumbs.db
 .DS_Store
+design/
 
 # Exclude documentation and tools folders (non-essential)
 Dropship\ Store\ Pro\ -\ Explained/

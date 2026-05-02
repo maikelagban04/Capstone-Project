@@ -17,6 +17,9 @@ import OrdersPage from "./pages/OrdersPage";
 import AdminDashboardPage from "./pages/AdminDashboardPage";
 import InventoryAdminPage from "./pages/InventoryAdminPage";
 import UsersAdminPage from "./pages/UsersAdminPage";
+import WishlistPage from "./pages/WishlistPage";
+import SupportPage from "./pages/SupportPage";
+import PCBuilderPage from "./pages/PCBuilderPage";
 import NotFoundPage from "./pages/NotFoundPage";
 import OAuthSuccessPage from "./pages/OAuthSuccessPage";
 
@@ -34,6 +37,16 @@ const App = () => {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/oauth-success" element={<OAuthSuccessPage />} />
+          <Route path="/support" element={<SupportPage />} />
+          <Route path="/pc-builder" element={<PCBuilderPage />} />
+          <Route
+            path="/wishlist"
+            element={
+              <ProtectedRoute>
+                <WishlistPage />
+              </ProtectedRoute>
+            }
+          />
           <Route
             path="/profile"
             element={

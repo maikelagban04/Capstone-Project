@@ -96,3 +96,61 @@ export const SearchIcon = (props) => (
     <path d="m21 21-4.3-4.3" />
   </svg>
 );
+
+export const HeartIcon = ({ filled = false, ...props }) => (
+  <svg
+    {...baseProps}
+    {...props}
+    fill={filled ? "currentColor" : "none"}
+  >
+    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78Z" />
+  </svg>
+);
+
+export const HelpCircleIcon = (props) => (
+  <svg {...baseProps} {...props}>
+    <circle cx="12" cy="12" r="10" />
+    <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+    <path d="M12 17h.01" />
+  </svg>
+);
+
+export const CpuIcon = (props) => (
+  <svg {...baseProps} {...props}>
+    <rect x="4" y="4" width="16" height="16" rx="2" />
+    <rect x="9" y="9" width="6" height="6" />
+    <path d="M9 2v2M15 2v2M9 20v2M15 20v2M2 9h2M2 15h2M20 9h2M20 15h2" />
+  </svg>
+);
+
+export const ChevronDownIcon = (props) => (
+  <svg {...baseProps} {...props}>
+    <path d="m6 9 6 6 6-6" />
+  </svg>
+);
+
+export const CheckIcon = (props) => (
+  <svg {...baseProps} {...props}>
+    <path d="M20 6 9 17l-5-5" />
+  </svg>
+);
+
+export const AlertIcon = (props) => (
+  <svg {...baseProps} {...props}>
+    <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z" />
+    <path d="M12 9v4M12 17h.01" />
+  </svg>
+);
+
+export const ZapIcon = (props) => (
+  <svg {...baseProps} {...props}>
+    <path d="M13 2 3 14h9l-1 8 10-12h-9l1-8Z" />
+  </svg>
+);
+
+export const MailIcon = (props) => (
+  <svg {...baseProps} {...props}>
+    <rect x="2" y="4" width="20" height="16" rx="2" />
+    <path d="m22 6-10 7L2 6" />
+  </svg>
+);

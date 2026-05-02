@@ -1,9 +1,30 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useCart } from "../hooks/useCart";
-import { CartIcon } from "./icons";
+import { useWishlist } from "../hooks/useWishlist";
+import { useAuth } from "../hooks/useAuth";
+import { CartIcon, HeartIcon } from "./icons";
 
 const ProductCard = ({ product }) => {
+  const navigate = useNavigate();
   const { addToCart } = useCart();
+  const { isAuthenticated } = useAuth();
+  const wishlist = useWishlist();
+  const inWishlist = wishlist?.isInWishlist?.(product._id) || false;
+
+  const handleWishlistToggle = async (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    if (!isAuthenticated) {
+      navigate("/login");
+      return;
+    }
+    try {
+      await wishlist?.toggleWishlist?.(product._id);
+    } catch (err) {
+      // silenziosamente: la wishlist non è funzione critica
+      console.error("Wishlist toggle failed", err);
+    }
+  };
 
   const finalPrice = Number(product.finalPrice || 0);
   const basePrice = Number(product.priceBase || 0);
@@ -34,6 +55,15 @@ const ProductCard = ({ product }) => {
         <span className="product-card__tag">{product.componentType}</span>
         {isOnSale ? <span className="product-card__sale-badge">In sconto</span> : null}
         {outOfStock ? <span className="product-card__overlay">OUT OF STOCK</span> : null}
+        <button
+          type="button"
+          className={`product-card__wishlist ${inWishlist ? "is-active" : ""}`}
+          onClick={handleWishlistToggle}
+          aria-label={inWishlist ? "Rimuovi dalla wishlist" : "Aggiungi alla wishlist"}
+          title={inWishlist ? "Rimuovi dalla wishlist" : "Aggiungi alla wishlist"}
+        >
+          <HeartIcon filled={inWishlist} />
+        </button>
       </Link>
 
       <div className="product-card__body">

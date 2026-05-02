@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { apiRequest } from "../api/client";
 import { useAuth } from "../hooks/useAuth";
-import { BoxIcon, LogoutIcon, SettingsIcon, TrashIcon, UserIcon } from "../components/icons";
+import { BoxIcon, HeartIcon, LogoutIcon, SettingsIcon, TrashIcon, UserIcon } from "../components/icons";
 
 const ProfilePage = () => {
   const navigate = useNavigate();
@@ -59,6 +59,10 @@ const ProfilePage = () => {
         <Link to="/orders" className="account-tile">
           <BoxIcon />
           <span>Ordini</span>
+        </Link>
+        <Link to="/wishlist" className="account-tile">
+          <HeartIcon />
+          <span>Wishlist</span>
         </Link>
         <Link to="/profile" className="account-tile">
           <SettingsIcon />
