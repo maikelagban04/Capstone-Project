@@ -1,9 +1,16 @@
 import { Link } from "react-router-dom";
 import { useCart } from "../hooks/useCart";
-import { getProductMeta } from "../utils/productHelpers";
+import { CartIcon } from "./icons";
 
 const ProductCard = ({ product }) => {
   const { addToCart } = useCart();
+
+  const finalPrice = Number(product.finalPrice || 0);
+  const basePrice = Number(product.priceBase || 0);
+  const hasDiscount = basePrice > 0 && basePrice > finalPrice;
+  const discountPercent = hasDiscount
+    ? Math.round(((basePrice - finalPrice) / basePrice) * 100)
+    : 0;
 
   return (
     <article className="product-card">
@@ -13,33 +20,30 @@ const ProductCard = ({ product }) => {
       </Link>
 
       <div className="product-card__body">
-        <p className="product-card__meta">{getProductMeta(product)}</p>
-        <h3>{product.title}</h3>
-        <p className="product-card__description">{product.description}</p>
+        <p className="product-card__category">{product.componentType}</p>
+        <h3>
+          <Link to={`/products/${product._id}`}>{product.title}</Link>
+        </h3>
 
-        <div className="product-card__footer">
-          <div>
-            <small>Prezzo finale</small>
-            <strong>€ {product.finalPrice.toFixed(2)}</strong>
-          </div>
-          <span className={`stock-pill ${product.inStock ? "is-available" : "is-empty"}`}>
-            {product.inStock ? "Disponibile" : "Esaurito"}
-          </span>
+        <div className="price-row-display">
+          {hasDiscount ? (
+            <span className="price-old">€ {basePrice.toFixed(2)}</span>
+          ) : null}
+          <span className="price-new">€ {finalPrice.toFixed(2)}</span>
+          {hasDiscount ? (
+            <span className="price-discount">-{discountPercent}%</span>
+          ) : null}
         </div>
 
-        <div className="product-card__actions">
-          <Link to={`/products/${product._id}`} className="btn btn-outline-secondary btn-shell">
-            Dettagli
-          </Link>
-          <button
-            type="button"
-            className="btn btn-primary btn-shell btn-shell--primary"
-            onClick={() => addToCart(product)}
-            disabled={!product.inStock}
-          >
-            Aggiungi
-          </button>
-        </div>
+        <button
+          type="button"
+          className="product-card__cta"
+          onClick={() => addToCart(product)}
+          disabled={!product.inStock}
+        >
+          <CartIcon />
+          <span>{product.inStock ? "Aggiungi al carrello" : "Non disponibile"}</span>
+        </button>
       </div>
     </article>
   );

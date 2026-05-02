@@ -64,8 +64,8 @@ const CatalogPage = () => {
   }, [search, selectedComponent, selectedBrand, minPrice, maxPrice, inStock]);
 
   const activeFilters = useMemo(
-    () => [selectedComponent, selectedBrand, minPrice, maxPrice, inStock !== "all" ? inStock : ""].filter(Boolean).length,
-    [selectedBrand, selectedComponent, minPrice, maxPrice, inStock],
+    () => [selectedBrand, minPrice, maxPrice, inStock !== "all" ? inStock : ""].filter(Boolean).length,
+    [selectedBrand, minPrice, maxPrice, inStock],
   );
 
   const clearFilters = () => {
@@ -77,54 +77,58 @@ const CatalogPage = () => {
     setInStock("all");
   };
 
+  const categoryCounts = useMemo(() => {
+    const counts = {};
+    products.forEach((product) => {
+      counts[product.componentType] = (counts[product.componentType] || 0) + 1;
+    });
+    return counts;
+  }, [products]);
+
   return (
     <div className="page-stack">
-      <section className="catalog-hero">
-        <div>
-          <span className="section-kicker">Catalogo</span>
-          <h1>Catalogo hardware</h1>
-        </div>
-        <div className="catalog-hero__search">
-          <input
-            type="search"
-            className="form-control"
-            placeholder="Cerca per titolo, brand o modello"
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-          />
-          <span>{products.length} risultati</span>
-        </div>
-      </section>
-
       <section className="catalog-layout">
         <aside className={`catalog-sidebar ${filtersOpen ? "is-open" : ""}`}>
+          <h3 className="catalog-sidebar__title">Categorie</h3>
+          <div className="category-list">
+            <button
+              type="button"
+              className={`category-list__item ${selectedComponent === "" ? "is-active" : ""}`}
+              onClick={() => setSelectedComponent("")}
+            >
+              <span>Tutti</span>
+              <small>{filterOptions.totalProducts || products.length}</small>
+            </button>
+            {filterOptions.componentTypes.map((type) => (
+              <button
+                key={type}
+                type="button"
+                className={`category-list__item ${selectedComponent === type ? "is-active" : ""}`}
+                onClick={() => setSelectedComponent(type)}
+              >
+                <span>{type}</span>
+                {categoryCounts[type] ? <small>{categoryCounts[type]}</small> : null}
+              </button>
+            ))}
+          </div>
+
           <div className="catalog-sidebar__head">
-            <div>
-              <strong>Filtri</strong>
-              <span>{activeFilters} attivi</span>
-            </div>
-            <button type="button" className="btn btn-outline-secondary btn-shell" onClick={clearFilters}>
-              Reset
+            <strong>Filtri</strong>
+            <button type="button" className="chip" onClick={clearFilters} aria-label="Reset filtri">
+              Reset {activeFilters ? `(${activeFilters})` : ""}
             </button>
           </div>
 
           <div className="filter-group">
-            <label>Tipo componente</label>
-            <div className="chip-row">
-              <button type="button" className={`chip ${selectedComponent === "" ? "is-active" : ""}`} onClick={() => setSelectedComponent("")}>
-                Tutti
-              </button>
-              {filterOptions.componentTypes.map((type) => (
-                <button
-                  key={type}
-                  type="button"
-                  className={`chip ${selectedComponent === type ? "is-active" : ""}`}
-                  onClick={() => setSelectedComponent(type)}
-                >
-                  {type}
-                </button>
-              ))}
-            </div>
+            <label htmlFor="catalog-search">Cerca</label>
+            <input
+              id="catalog-search"
+              type="search"
+              className="form-control"
+              placeholder="Titolo, brand, modello"
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+            />
           </div>
 
           <div className="filter-group">
@@ -188,23 +192,25 @@ const CatalogPage = () => {
         <div className="catalog-content">
           <div className="catalog-toolbar">
             <div>
-              <strong>Catalogo hardware</strong>
-              <span>{filterOptions.totalProducts} prodotti nel database</span>
+              <h2>{selectedComponent || "Tutti i prodotti"}</h2>
+              <span>{products.length} prodotti disponibili</span>
             </div>
             <button
               type="button"
-              className="btn btn-outline-secondary btn-shell d-lg-none"
+              className="btn-shell d-lg-none"
               onClick={() => setFiltersOpen((current) => !current)}
             >
               {filtersOpen ? "Chiudi filtri" : "Apri filtri"}
             </button>
           </div>
 
-          {loading ? <div className="empty-panel">Sto caricando il catalogo...</div> : null}
+          {loading ? <div className="empty-panel">Caricamento catalogo...</div> : null}
           {error ? <p className="error-text">{error}</p> : null}
-          {!loading && products.length === 0 ? <div className="empty-panel">Nessun prodotto trovato.</div> : null}
+          {!loading && products.length === 0 ? (
+            <div className="empty-panel">Nessun prodotto trovato.</div>
+          ) : null}
 
-          {!loading ? (
+          {!loading && products.length > 0 ? (
             <section className="product-grid">
               {products.map((product) => (
                 <ProductCard key={product._id} product={product} />

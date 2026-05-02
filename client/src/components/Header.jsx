@@ -1,71 +1,128 @@
 import { useState } from "react";
-import { Link, NavLink } from "react-router-dom";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useTheme } from "../context/ThemeContext";
 import logoDark from "../assets/logo-dark-transparent.png";
 import logoLight from "../assets/logo-light-clean.png";
 import { useAuth } from "../hooks/useAuth";
 import { useCart } from "../hooks/useCart";
+import { BoxIcon, CartIcon, MoonIcon, SunIcon, UserIcon } from "./icons";
 
 const Header = () => {
+  const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const { auth, isAdmin, logout } = useAuth();
-  const { cartItems } = useCart();
+  const { cartItems, openCart } = useCart();
   const { theme, toggleTheme } = useTheme();
 
   const closeMenu = () => setOpen(false);
+
+  const handleProfileClick = () => {
+    closeMenu();
+    navigate(auth ? "/profile" : "/login");
+  };
+
+  const handleOrdersClick = () => {
+    closeMenu();
+    navigate(auth ? "/orders" : "/login");
+  };
+
+  const handleCartClick = () => {
+    closeMenu();
+    openCart();
+  };
 
   return (
     <header className="site-header">
       <div className="page-shell site-header__inner">
         <Link to="/" className="brand" onClick={closeMenu}>
-          <img src={theme === "dark" ? logoDark : logoLight} alt="KyronTech" className="brand__logo" />
+          <img
+            src={theme === "dark" ? logoDark : logoLight}
+            alt="KyronTech"
+            className="brand__logo"
+          />
         </Link>
 
         <button
           type="button"
-          className="site-header__toggle d-xl-none"
+          className="site-header__toggle"
           onClick={() => setOpen((current) => !current)}
-          aria-label="Open menu"
+          aria-label="Apri menu"
         >
+          <span />
           <span />
           <span />
         </button>
 
         <div className={`site-header__panel ${open ? "is-open" : ""}`}>
           <nav className="site-nav">
-            <NavLink to="/" onClick={closeMenu}>Home</NavLink>
+            <NavLink to="/" end onClick={closeMenu}>Home</NavLink>
             <NavLink to="/catalog" onClick={closeMenu}>Catalogo</NavLink>
-            <NavLink to="/cart" onClick={closeMenu}>
-              Carrello
-              <span className="site-nav__count">{cartItems.length}</span>
-            </NavLink>
-            {auth ? <NavLink to="/orders" onClick={closeMenu}>Ordini</NavLink> : null}
-            {auth ? <NavLink to="/profile" onClick={closeMenu}>Profilo</NavLink> : null}
             {isAdmin ? <NavLink to="/admin" onClick={closeMenu}>Dashboard</NavLink> : null}
           </nav>
 
           <div className="site-header__actions">
-            <button type="button" className="theme-toggle" onClick={toggleTheme} aria-label="Toggle theme">
-              <span className={`theme-toggle__dot ${theme === "dark" ? "is-dark" : ""}`} />
-              <span>{theme === "dark" ? "Dark" : "Light"}</span>
+            <button
+              type="button"
+              className="icon-btn theme-toggle"
+              onClick={toggleTheme}
+              aria-label={theme === "dark" ? "Passa al tema chiaro" : "Passa al tema scuro"}
+              title={theme === "dark" ? "Tema chiaro" : "Tema scuro"}
+            >
+              {theme === "dark" ? <SunIcon /> : <MoonIcon />}
+            </button>
+
+            <button
+              type="button"
+              className="icon-btn"
+              onClick={handleOrdersClick}
+              aria-label="Ordini"
+              title="Ordini"
+            >
+              <BoxIcon />
+            </button>
+
+            <button
+              type="button"
+              className="icon-btn"
+              onClick={handleProfileClick}
+              aria-label={auth ? "Profilo" : "Accedi"}
+              title={auth ? auth.name : "Accedi"}
+            >
+              <UserIcon />
+            </button>
+
+            <button
+              type="button"
+              className="cart-pill"
+              onClick={handleCartClick}
+              aria-label="Apri carrello"
+            >
+              <CartIcon />
+              <span>Cart</span>
+              {cartItems.length > 0 ? (
+                <span className="cart-pill__count">{cartItems.length}</span>
+              ) : null}
             </button>
 
             {auth ? (
-              <>
-                <span className="site-header__user">{auth.name}</span>
-                <button type="button" className="btn btn-outline-secondary btn-shell" onClick={logout}>
-                  Logout
-                </button>
-              </>
+              <button
+                type="button"
+                className="btn-shell"
+                onClick={() => {
+                  closeMenu();
+                  logout();
+                }}
+              >
+                Logout
+              </button>
             ) : (
-              <>
-                <Link to="/login" className="btn btn-outline-secondary btn-shell" onClick={closeMenu}>
-                  Accedi
-                </Link>
-                <Link to="/register" className="btn btn-primary btn-shell btn-shell--primary" onClick={closeMenu}>
-                  Registrati
-                </Link>
-              </>
+              <Link
+                to="/register"
+                className="btn-shell btn-shell--primary"
+                onClick={closeMenu}
+              >
+                Registrati
+              </Link>
             )}
           </div>
         </div>

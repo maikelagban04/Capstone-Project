@@ -7,12 +7,27 @@ export const CartProvider = ({ children }) => {
     const storedValue = localStorage.getItem(STORAGE_KEY);
     return storedValue ? JSON.parse(storedValue) : [];
   });
+  const [isCartOpen, setIsCartOpen] = useState(false);
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(cartItems));
   }, [cartItems]);
 
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = isCartOpen ? "hidden" : previous || "";
+    return () => {
+      document.body.style.overflow = previous || "";
+    };
+  }, [isCartOpen]);
+
+  const openCart = () => setIsCartOpen(true);
+  const closeCart = () => setIsCartOpen(false);
+  const toggleCart = () => setIsCartOpen((current) => !current);
+
   const addToCart = (product, quantity = 1) => {
+    setIsCartOpen(true);
     setCartItems((currentItems) => {
       const existingItem = currentItems.find((item) => item._id === product._id);
 
@@ -63,6 +78,10 @@ export const CartProvider = ({ children }) => {
         updateQuantity,
         clearCart,
         total: Number(total.toFixed(2)),
+        isCartOpen,
+        openCart,
+        closeCart,
+        toggleCart,
       }}
     >
       {children}

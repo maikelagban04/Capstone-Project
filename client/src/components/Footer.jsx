@@ -16,7 +16,6 @@ const Footer = () => {
           <h4>Shop</h4>
           <ul>
             <li><Link to="/catalog">Catalogo</Link></li>
-            <li><Link to="/cart">Carrello</Link></li>
             <li><Link to="/checkout">Checkout</Link></li>
           </ul>
         </div>
