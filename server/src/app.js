@@ -49,7 +49,7 @@ app.use(passport.initialize());
 app.get("/api/health", (req, res) => {
   const mailFrom = getMailFrom();
   res.json({
-    message: "Dropship Store Pro API is running",
+    message: "KyronTech API is running",
     smtpConfigured: hasSmtpConfig(),
     sendgridConfigured: hasSendGridConfig(),
     mailFromConfigured: Boolean(mailFrom?.email),

@@ -35,6 +35,11 @@ const CartDrawer = () => {
     navigate("/checkout");
   };
 
+  const handleGoToCatalog = () => {
+    closeCart();
+    navigate("/catalog");
+  };
+
   return (
     <>
       <div
@@ -113,7 +118,17 @@ const CartDrawer = () => {
               Procedi al checkout
             </button>
           </div>
-        ) : null}
+        ) : (
+          <div className="cart-drawer__footer">
+            <button
+              type="button"
+              className="btn-shell btn-shell--light btn-shell--block"
+              onClick={handleGoToCatalog}
+            >
+              Esplora il catalogo
+            </button>
+          </div>
+        )}
       </aside>
     </>
   );

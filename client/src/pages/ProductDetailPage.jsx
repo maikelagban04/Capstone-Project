@@ -1,10 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { apiRequest } from "../api/client";
 import { useCart } from "../hooks/useCart";
 import { useWishlist } from "../hooks/useWishlist";
 import { useAuth } from "../hooks/useAuth";
-import { HeartIcon } from "../components/icons";
+import { CheckIcon, HeartIcon } from "../components/icons";
 import {
   formatKeyLabel,
   getCompatibilityEntries,
@@ -22,6 +22,7 @@ const ProductDetailPage = () => {
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [activeImage, setActiveImage] = useState("");
 
   const handleWishlistToggle = async () => {
     if (!isAuthenticated) {
@@ -41,6 +42,7 @@ const ProductDetailPage = () => {
         setLoading(true);
         const data = await apiRequest(`/products/${id}`);
         setProduct(data);
+        setActiveImage("");
       } catch (requestError) {
         setError(requestError.message);
       } finally {
@@ -50,6 +52,15 @@ const ProductDetailPage = () => {
 
     loadProduct();
   }, [id]);
+
+  // Galleria immagini: l'immagine principale + tutte quelle in `images` (deduplicate).
+  const gallery = useMemo(() => {
+    if (!product) return [];
+    const set = new Set();
+    if (product.image) set.add(product.image);
+    (product.images || []).forEach((url) => url && set.add(url));
+    return Array.from(set);
+  }, [product]);
 
   if (loading) {
     return <div className="empty-panel">Caricamento prodotto...</div>;
@@ -71,20 +82,59 @@ const ProductDetailPage = () => {
   const displayPrice = isOnSale ? salePrice : finalPrice;
   const outOfStock = !product.inStock;
 
+  const currentImage = activeImage || product.image;
+
+  // Meta tags extra: anno, garanzia, colore, peso. Filtrati a quelli valorizzati.
+  const productExtras = [
+    product.releaseYear ? { label: "Anno", value: product.releaseYear } : null,
+    product.warrantyMonths ? { label: "Garanzia", value: `${product.warrantyMonths} mesi` } : null,
+    product.color ? { label: "Colore", value: product.color } : null,
+    product.weightGrams ? { label: "Peso", value: `${product.weightGrams} g` } : null,
+  ].filter(Boolean);
+
   return (
     <div className="page-stack">
       <section className={`product-layout ${outOfStock ? "is-out-of-stock" : ""}`}>
         <div className="product-view">
-          <img src={product.image} alt={product.title} className="product-view__image" />
+          <img src={currentImage} alt={product.title} className="product-view__image" />
           {outOfStock ? <span className="product-view__overlay">OUT OF STOCK</span> : null}
           {isOnSale ? <span className="product-view__sale">In sconto</span> : null}
+          {gallery.length > 1 ? (
+            <div className="product-view__thumbs">
+              {gallery.map((src) => (
+                <button
+                  key={src}
+                  type="button"
+                  className={`product-view__thumb ${src === currentImage ? "is-active" : ""}`}
+                  onClick={() => setActiveImage(src)}
+                  aria-label="Mostra immagine"
+                >
+                  <img src={src} alt="" />
+                </button>
+              ))}
+            </div>
+          ) : null}
         </div>
 
         <aside className="product-summary">
           <span className="section-kicker">{product.componentType}</span>
           <h1>{product.title}</h1>
           <p className="product-summary__meta">{getProductMeta(product)}</p>
+          {product.shortDescription ? (
+            <p className="product-summary__short">{product.shortDescription}</p>
+          ) : null}
           <p className="product-summary__description">{product.description}</p>
+
+          {Array.isArray(product.highlights) && product.highlights.length > 0 ? (
+            <ul className="product-summary__highlights">
+              {product.highlights.map((item, idx) => (
+                <li key={idx}>
+                  <CheckIcon />
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
+          ) : null}
 
           <div className="product-summary__stats">
             <div>
@@ -174,6 +224,41 @@ const ProductDetailPage = () => {
           )}
         </article>
       </section>
+
+      {productExtras.length > 0 || product.dimensionsMm ? (
+        <section className="detail-panel">
+          <div className="section-head">
+            <div>
+              <span className="section-kicker">Info prodotto</span>
+              <h2>Caratteristiche aggiuntive</h2>
+            </div>
+          </div>
+          <dl className="detail-list">
+            {productExtras.map((extra) => (
+              <div key={extra.label}>
+                <dt>{extra.label}</dt>
+                <dd>{extra.value}</dd>
+              </div>
+            ))}
+            {product.dimensionsMm
+              && (product.dimensionsMm.length || product.dimensionsMm.width || product.dimensionsMm.height) ? (
+              <div>
+                <dt>Dimensioni</dt>
+                <dd>
+                  {[
+                    product.dimensionsMm.length,
+                    product.dimensionsMm.width,
+                    product.dimensionsMm.height,
+                  ]
+                    .filter(Boolean)
+                    .join(" × ")}{" "}
+                  mm
+                </dd>
+              </div>
+            ) : null}
+          </dl>
+        </section>
+      ) : null}
     </div>
   );
 };

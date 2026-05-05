@@ -1,24 +1,51 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { apiRequest } from "../api/client";
 import { useAuth } from "../hooks/useAuth";
-import { COMPONENT_TYPES, parseJsonInput, stringifyJsonInput } from "../utils/productHelpers";
+import { COMPONENT_TYPES } from "../utils/productHelpers";
+import {
+  COMPATIBILITY_FIELDS,
+  SPEC_GROUP_FIELDS,
+  TYPE_TO_SPEC_GROUP,
+  formatFieldValue,
+  parseFieldValue,
+} from "../utils/productFormSchema";
 
 const emptyForm = {
+  // Campi universali
   title: "",
   description: "",
+  shortDescription: "",
+  highlightsText: "", // textarea multilinea → array
   priceBase: "",
   markup: "",
   image: "",
+  imagesText: "",    // textarea multilinea → array
   category: "",
   componentType: "",
   brand: "",
   model: "",
+  releaseYear: "",
+  warrantyMonths: "",
+  weightGrams: "",
+  color: "",
+  dimLength: "",
+  dimWidth: "",
+  dimHeight: "",
   stock: "0",
   isOnSale: false,
   salePrice: "",
-  specificationsJson: "{}",
-  compatibilityJson: "{}",
+  // Gruppi dinamici: specs[groupKey][fieldKey] e compat[fieldKey]
+  specs: {},       // { cpu: { coresCount: "16", ... }, gpu: {...}, ... }
+  compat: {},      // { socket: "AM5", ... }
 };
+
+// Trasforma un array da modello in testo multilinea.
+const toMultiline = (value) => (Array.isArray(value) ? value.filter(Boolean).join("\n") : "");
+const fromMultiline = (value) =>
+  String(value || "")
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean);
 
 const fetchDashboardData = async (token) => {
   const headers = {
@@ -77,26 +104,73 @@ const AdminDashboardPage = () => {
     setForm(emptyForm);
   };
 
+  const buildSpecsPayload = (currentForm) => {
+    const groupKey = TYPE_TO_SPEC_GROUP[currentForm.componentType];
+    const out = {};
+
+    if (groupKey) {
+      const fields = SPEC_GROUP_FIELDS[groupKey] || [];
+      const groupValues = {};
+      fields.forEach((field) => {
+        const rawValue = currentForm.specs?.[groupKey]?.[field.key];
+        const parsed = parseFieldValue(field, rawValue);
+        if (parsed !== undefined && parsed !== "" && !(Array.isArray(parsed) && parsed.length === 0)) {
+          groupValues[field.key] = parsed;
+        }
+      });
+      if (Object.keys(groupValues).length > 0) {
+        out[groupKey] = groupValues;
+      }
+    }
+
+    return out;
+  };
+
+  const buildCompatPayload = (currentForm) => {
+    const out = {};
+    COMPATIBILITY_FIELDS.forEach((field) => {
+      const rawValue = currentForm.compat?.[field.key];
+      const parsed = parseFieldValue(field, rawValue);
+      if (parsed !== undefined && parsed !== "") {
+        out[field.key] = parsed;
+      }
+    });
+    return out;
+  };
+
   const handleSubmit = async (event) => {
     event.preventDefault();
 
     try {
+      const dimensions = {};
+      if (form.dimLength) dimensions.length = Number(form.dimLength);
+      if (form.dimWidth) dimensions.width = Number(form.dimWidth);
+      if (form.dimHeight) dimensions.height = Number(form.dimHeight);
+
       const payload = {
         title: form.title,
         description: form.description,
+        shortDescription: form.shortDescription || undefined,
+        highlights: fromMultiline(form.highlightsText),
         priceBase: Number(form.priceBase),
         markup: Number(form.markup),
         image: form.image,
+        images: fromMultiline(form.imagesText),
         category: form.category,
         componentType: form.componentType,
         brand: form.brand,
         model: form.model,
+        releaseYear: form.releaseYear ? Number(form.releaseYear) : undefined,
+        warrantyMonths: form.warrantyMonths ? Number(form.warrantyMonths) : undefined,
+        weightGrams: form.weightGrams ? Number(form.weightGrams) : undefined,
+        color: form.color || undefined,
+        dimensionsMm: Object.keys(dimensions).length ? dimensions : undefined,
         stock: Number(form.stock),
         isOnSale: Boolean(form.isOnSale),
         salePrice:
           form.isOnSale && form.salePrice !== "" ? Number(form.salePrice) : null,
-        specifications: parseJsonInput(form.specificationsJson, "Specifications"),
-        compatibility: parseJsonInput(form.compatibilityJson, "Compatibility"),
+        specifications: buildSpecsPayload(form),
+        compatibility: buildCompatPayload(form),
       };
 
       await apiRequest(editingId ? `/products/${editingId}` : "/products", {
@@ -115,22 +189,55 @@ const AdminDashboardPage = () => {
 
   const handleEdit = (product) => {
     setEditingId(product._id);
+
+    // Popola i gruppi dinamici con i valori esistenti, formattati per il form.
+    const groupKey = TYPE_TO_SPEC_GROUP[product.componentType];
+    const specsState = {};
+    if (groupKey && product.specifications?.[groupKey]) {
+      const fields = SPEC_GROUP_FIELDS[groupKey] || [];
+      specsState[groupKey] = {};
+      fields.forEach((field) => {
+        specsState[groupKey][field.key] = formatFieldValue(
+          field,
+          product.specifications[groupKey][field.key],
+        );
+      });
+    }
+
+    const compatState = {};
+    COMPATIBILITY_FIELDS.forEach((field) => {
+      compatState[field.key] = formatFieldValue(field, product.compatibility?.[field.key]);
+    });
+
     setForm({
-      title: product.title,
-      description: product.description,
-      priceBase: String(product.priceBase),
-      markup: String(product.markup),
-      image: product.image,
-      category: product.category,
-      componentType: product.componentType,
-      brand: product.brand,
-      model: product.model,
+      title: product.title || "",
+      description: product.description || "",
+      shortDescription: product.shortDescription || "",
+      highlightsText: toMultiline(product.highlights),
+      priceBase: String(product.priceBase ?? ""),
+      markup: String(product.markup ?? ""),
+      image: product.image || "",
+      imagesText: toMultiline(product.images),
+      category: product.category || "",
+      componentType: product.componentType || "",
+      brand: product.brand || "",
+      model: product.model || "",
+      releaseYear: product.releaseYear ? String(product.releaseYear) : "",
+      warrantyMonths: product.warrantyMonths ? String(product.warrantyMonths) : "",
+      weightGrams: product.weightGrams ? String(product.weightGrams) : "",
+      color: product.color || "",
+      dimLength: product.dimensionsMm?.length ? String(product.dimensionsMm.length) : "",
+      dimWidth: product.dimensionsMm?.width ? String(product.dimensionsMm.width) : "",
+      dimHeight: product.dimensionsMm?.height ? String(product.dimensionsMm.height) : "",
       stock: String(product.stock ?? 0),
       isOnSale: Boolean(product.isOnSale),
       salePrice: product.salePrice != null ? String(product.salePrice) : "",
-      specificationsJson: stringifyJsonInput(product.specifications),
-      compatibilityJson: stringifyJsonInput(product.compatibility),
+      specs: specsState,
+      compat: compatState,
     });
+
+    // Scrolla in cima al form
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const handleDelete = async (productId) => {
@@ -181,96 +288,405 @@ const AdminDashboardPage = () => {
       {message ? <div className="alert alert-info">{message}</div> : null}
 
       <section className="admin-layout">
-        <form className="admin-card" onSubmit={handleSubmit}>
+        <form className="admin-card admin-form" onSubmit={handleSubmit}>
           <div className="section-head">
             <div>
               <span className="section-kicker">Prodotto</span>
               <h2>{editingId ? "Modifica prodotto" : "Nuovo prodotto"}</h2>
             </div>
+            {editingId ? (
+              <button type="button" className="btn-shell" onClick={resetForm}>
+                Annulla modifica
+              </button>
+            ) : null}
           </div>
 
-          <div className="row g-3">
-            <div className="col-md-6">
-              <input className="form-control" placeholder="Titolo" value={form.title} onChange={(event) => setForm({ ...form, title: event.target.value })} required />
+          {/* Sezione 1: Anagrafica --------------------------------------- */}
+          <fieldset className="admin-form__group">
+            <legend>Anagrafica</legend>
+            <div className="admin-form__grid">
+              <label className="admin-form__field admin-form__field--wide">
+                <span>Titolo</span>
+                <input
+                  className="form-control"
+                  value={form.title}
+                  onChange={(event) => setForm({ ...form, title: event.target.value })}
+                  required
+                />
+              </label>
+              <label className="admin-form__field">
+                <span>Tipo componente</span>
+                <select
+                  className="form-select"
+                  value={form.componentType}
+                  onChange={(event) =>
+                    setForm({ ...form, componentType: event.target.value, specs: {} })
+                  }
+                  required
+                >
+                  <option value="">Seleziona...</option>
+                  {COMPONENT_TYPES.map((type) => (
+                    <option key={type} value={type}>{type}</option>
+                  ))}
+                </select>
+              </label>
+              <label className="admin-form__field">
+                <span>Categoria</span>
+                <input
+                  className="form-control"
+                  value={form.category}
+                  onChange={(event) => setForm({ ...form, category: event.target.value })}
+                  required
+                />
+              </label>
+              <label className="admin-form__field">
+                <span>Brand</span>
+                <input
+                  className="form-control"
+                  value={form.brand}
+                  onChange={(event) => setForm({ ...form, brand: event.target.value })}
+                  required
+                />
+              </label>
+              <label className="admin-form__field">
+                <span>Model</span>
+                <input
+                  className="form-control"
+                  value={form.model}
+                  onChange={(event) => setForm({ ...form, model: event.target.value })}
+                  required
+                />
+              </label>
+              <label className="admin-form__field admin-form__field--wide">
+                <span>Descrizione breve (marketing, max 200 car.)</span>
+                <input
+                  className="form-control"
+                  maxLength={200}
+                  value={form.shortDescription}
+                  onChange={(event) => setForm({ ...form, shortDescription: event.target.value })}
+                  placeholder="Una frase d'effetto che appare in cima al dettaglio"
+                />
+              </label>
+              <label className="admin-form__field admin-form__field--wide">
+                <span>Descrizione completa</span>
+                <textarea
+                  className="form-control"
+                  rows={3}
+                  value={form.description}
+                  onChange={(event) => setForm({ ...form, description: event.target.value })}
+                  required
+                />
+              </label>
+              <label className="admin-form__field admin-form__field--wide">
+                <span>Highlights (uno per riga)</span>
+                <textarea
+                  className="form-control"
+                  rows={4}
+                  value={form.highlightsText}
+                  onChange={(event) => setForm({ ...form, highlightsText: event.target.value })}
+                  placeholder={"24 core / 32 thread\nBoost fino a 6.0 GHz\nCache L3 da 36 MB"}
+                />
+              </label>
             </div>
-            <div className="col-md-6">
-              <input className="form-control" placeholder="Categoria" value={form.category} onChange={(event) => setForm({ ...form, category: event.target.value })} required />
+          </fieldset>
+
+          {/* Sezione 2: Immagini --------------------------------------- */}
+          <fieldset className="admin-form__group">
+            <legend>Immagini</legend>
+            <div className="admin-form__grid">
+              <label className="admin-form__field admin-form__field--wide">
+                <span>Immagine copertina (URL)</span>
+                <input
+                  type="url"
+                  className="form-control"
+                  value={form.image}
+                  onChange={(event) => setForm({ ...form, image: event.target.value })}
+                  required
+                />
+              </label>
+              <label className="admin-form__field admin-form__field--wide">
+                <span>Galleria — URL aggiuntivi (uno per riga)</span>
+                <textarea
+                  className="form-control"
+                  rows={3}
+                  value={form.imagesText}
+                  onChange={(event) => setForm({ ...form, imagesText: event.target.value })}
+                  placeholder="https://res.cloudinary.com/.../img1.jpg"
+                />
+              </label>
             </div>
-            <div className="col-md-4">
-              <select className="form-select" value={form.componentType} onChange={(event) => setForm({ ...form, componentType: event.target.value })} required>
-                <option value="">Tipo componente</option>
-                {COMPONENT_TYPES.map((type) => (
-                  <option key={type} value={type}>{type}</option>
-                ))}
-              </select>
-            </div>
-            <div className="col-md-4">
-              <input className="form-control" placeholder="Brand" value={form.brand} onChange={(event) => setForm({ ...form, brand: event.target.value })} required />
-            </div>
-            <div className="col-md-4">
-              <input className="form-control" placeholder="Model" value={form.model} onChange={(event) => setForm({ ...form, model: event.target.value })} required />
-            </div>
-            <div className="col-md-4">
-              <input type="number" className="form-control" placeholder="Prezzo base" value={form.priceBase} onChange={(event) => setForm({ ...form, priceBase: event.target.value })} required />
-            </div>
-            <div className="col-md-4">
-              <input type="number" className="form-control" placeholder="Markup" value={form.markup} onChange={(event) => setForm({ ...form, markup: event.target.value })} required />
-            </div>
-            <div className="col-md-4">
-              <input type="number" className="form-control" placeholder="Stock" value={form.stock} onChange={(event) => setForm({ ...form, stock: event.target.value })} required />
-            </div>
-            <div className="col-md-4 d-flex align-items-center">
-              <label className="inventory-toggle" style={{ width: "100%" }}>
+          </fieldset>
+
+          {/* Sezione 3: Prezzo & stock --------------------------------------- */}
+          <fieldset className="admin-form__group">
+            <legend>Prezzo & disponibilità</legend>
+            <div className="admin-form__grid">
+              <label className="admin-form__field">
+                <span>Prezzo base (€)</span>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  className="form-control"
+                  value={form.priceBase}
+                  onChange={(event) => setForm({ ...form, priceBase: event.target.value })}
+                  required
+                />
+              </label>
+              <label className="admin-form__field">
+                <span>Markup (%)</span>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  className="form-control"
+                  value={form.markup}
+                  onChange={(event) => setForm({ ...form, markup: event.target.value })}
+                  required
+                />
+              </label>
+              <label className="admin-form__field">
+                <span>Stock</span>
+                <input
+                  type="number"
+                  min="0"
+                  className="form-control"
+                  value={form.stock}
+                  onChange={(event) => setForm({ ...form, stock: event.target.value })}
+                  required
+                />
+              </label>
+              <label className="admin-form__field admin-form__field--checkbox">
                 <input
                   type="checkbox"
                   checked={form.isOnSale}
-                  onChange={(event) =>
-                    setForm({ ...form, isOnSale: event.target.checked })
-                  }
+                  onChange={(event) => setForm({ ...form, isOnSale: event.target.checked })}
                 />
                 <span>In sconto</span>
               </label>
+              <label className="admin-form__field">
+                <span>Prezzo scontato (€)</span>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  className="form-control"
+                  value={form.salePrice}
+                  onChange={(event) => setForm({ ...form, salePrice: event.target.value })}
+                  disabled={!form.isOnSale}
+                />
+              </label>
             </div>
-            <div className="col-md-4">
-              <input
-                type="number"
-                step="0.01"
-                min="0"
-                className="form-control"
-                placeholder="Prezzo scontato (€)"
-                value={form.salePrice}
-                onChange={(event) => setForm({ ...form, salePrice: event.target.value })}
-                disabled={!form.isOnSale}
-              />
+          </fieldset>
+
+          {/* Sezione 4: Info prodotto --------------------------------------- */}
+          <fieldset className="admin-form__group">
+            <legend>Info prodotto</legend>
+            <div className="admin-form__grid">
+              <label className="admin-form__field">
+                <span>Anno rilascio</span>
+                <input
+                  type="number"
+                  className="form-control"
+                  value={form.releaseYear}
+                  onChange={(event) => setForm({ ...form, releaseYear: event.target.value })}
+                />
+              </label>
+              <label className="admin-form__field">
+                <span>Garanzia (mesi)</span>
+                <input
+                  type="number"
+                  min="0"
+                  className="form-control"
+                  value={form.warrantyMonths}
+                  onChange={(event) => setForm({ ...form, warrantyMonths: event.target.value })}
+                />
+              </label>
+              <label className="admin-form__field">
+                <span>Peso (g)</span>
+                <input
+                  type="number"
+                  min="0"
+                  className="form-control"
+                  value={form.weightGrams}
+                  onChange={(event) => setForm({ ...form, weightGrams: event.target.value })}
+                />
+              </label>
+              <label className="admin-form__field">
+                <span>Colore</span>
+                <input
+                  className="form-control"
+                  value={form.color}
+                  onChange={(event) => setForm({ ...form, color: event.target.value })}
+                />
+              </label>
+              <label className="admin-form__field">
+                <span>Lunghezza (mm)</span>
+                <input
+                  type="number"
+                  className="form-control"
+                  value={form.dimLength}
+                  onChange={(event) => setForm({ ...form, dimLength: event.target.value })}
+                />
+              </label>
+              <label className="admin-form__field">
+                <span>Larghezza (mm)</span>
+                <input
+                  type="number"
+                  className="form-control"
+                  value={form.dimWidth}
+                  onChange={(event) => setForm({ ...form, dimWidth: event.target.value })}
+                />
+              </label>
+              <label className="admin-form__field">
+                <span>Altezza (mm)</span>
+                <input
+                  type="number"
+                  className="form-control"
+                  value={form.dimHeight}
+                  onChange={(event) => setForm({ ...form, dimHeight: event.target.value })}
+                />
+              </label>
             </div>
-            <div className="col-md-4" />
-            <div className="col-12">
-              <input type="url" className="form-control" placeholder="Image URL" value={form.image} onChange={(event) => setForm({ ...form, image: event.target.value })} required />
+          </fieldset>
+
+          {/* Sezione 5: Specifiche tipizzate (dinamica) --------------------- */}
+          {form.componentType && TYPE_TO_SPEC_GROUP[form.componentType] ? (
+            <fieldset className="admin-form__group">
+              <legend>
+                Specifiche {form.componentType}
+              </legend>
+              <div className="admin-form__grid">
+                {(SPEC_GROUP_FIELDS[TYPE_TO_SPEC_GROUP[form.componentType]] || []).map((field) => {
+                  const groupKey = TYPE_TO_SPEC_GROUP[form.componentType];
+                  const value = form.specs?.[groupKey]?.[field.key] ?? (field.type === "boolean" ? false : "");
+                  const onChange = (newValue) =>
+                    setForm((prev) => ({
+                      ...prev,
+                      specs: {
+                        ...prev.specs,
+                        [groupKey]: { ...(prev.specs[groupKey] || {}), [field.key]: newValue },
+                      },
+                    }));
+
+                  const fieldClass = field.type === "array" || field.type === "boolean"
+                    ? "admin-form__field admin-form__field--wide"
+                    : "admin-form__field";
+
+                  if (field.type === "boolean") {
+                    return (
+                      <label key={field.key} className="admin-form__field admin-form__field--checkbox">
+                        <input
+                          type="checkbox"
+                          checked={Boolean(value)}
+                          onChange={(event) => onChange(event.target.checked)}
+                        />
+                        <span>{field.label}</span>
+                      </label>
+                    );
+                  }
+
+                  if (field.type === "array") {
+                    return (
+                      <label key={field.key} className={fieldClass}>
+                        <span>{field.label}</span>
+                        <textarea
+                          className="form-control"
+                          rows={3}
+                          value={value}
+                          onChange={(event) => onChange(event.target.value)}
+                        />
+                      </label>
+                    );
+                  }
+
+                  if (field.type === "select") {
+                    return (
+                      <label key={field.key} className={fieldClass}>
+                        <span>{field.label}</span>
+                        <select
+                          className="form-select"
+                          value={value}
+                          onChange={(event) => onChange(event.target.value)}
+                        >
+                          {(field.options || []).map((opt) => (
+                            <option key={opt} value={opt}>
+                              {opt || "—"}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                    );
+                  }
+
+                  return (
+                    <label key={field.key} className={fieldClass}>
+                      <span>{field.label}</span>
+                      <input
+                        type={field.type === "number" ? "number" : "text"}
+                        step={field.step}
+                        className="form-control"
+                        placeholder={field.placeholder || ""}
+                        value={value}
+                        onChange={(event) => onChange(event.target.value)}
+                      />
+                    </label>
+                  );
+                })}
+              </div>
+            </fieldset>
+          ) : null}
+
+          {/* Sezione 6: Compatibilità --------------------- */}
+          <fieldset className="admin-form__group">
+            <legend>Compatibilità (per check PC Builder)</legend>
+            <div className="admin-form__grid">
+              {COMPATIBILITY_FIELDS.map((field) => {
+                const value = form.compat?.[field.key] ?? "";
+                const onChange = (newValue) =>
+                  setForm((prev) => ({
+                    ...prev,
+                    compat: { ...prev.compat, [field.key]: newValue },
+                  }));
+
+                if (field.type === "select") {
+                  return (
+                    <label key={field.key} className="admin-form__field">
+                      <span>{field.label}</span>
+                      <select
+                        className="form-select"
+                        value={value}
+                        onChange={(event) => onChange(event.target.value)}
+                      >
+                        {(field.options || []).map((opt) => (
+                          <option key={opt} value={opt}>
+                            {opt || "—"}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                  );
+                }
+
+                return (
+                  <label key={field.key} className="admin-form__field">
+                    <span>{field.label}</span>
+                    <input
+                      type={field.type === "number" ? "number" : "text"}
+                      className="form-control"
+                      placeholder={field.placeholder || ""}
+                      value={value}
+                      onChange={(event) => onChange(event.target.value)}
+                    />
+                  </label>
+                );
+              })}
             </div>
-            <div className="col-12">
-              <textarea className="form-control" placeholder="Descrizione" value={form.description} onChange={(event) => setForm({ ...form, description: event.target.value })} required />
-            </div>
-            <div className="col-md-6">
-              <textarea
-                className="form-control"
-                placeholder='Specifications JSON, es: {"cores":"8","frequency":"5.0 GHz"}'
-                value={form.specificationsJson}
-                onChange={(event) => setForm({ ...form, specificationsJson: event.target.value })}
-              />
-            </div>
-            <div className="col-md-6">
-              <textarea
-                className="form-control"
-                placeholder='Compatibility JSON, es: {"socket":"AM5","memoryType":"DDR5"}'
-                value={form.compatibilityJson}
-                onChange={(event) => setForm({ ...form, compatibilityJson: event.target.value })}
-              />
-            </div>
-          </div>
+          </fieldset>
 
           <div className="admin-card__actions">
             <button type="submit" className="btn btn-primary btn-shell btn-shell--primary">
-              {editingId ? "Aggiorna" : "Crea"}
+              {editingId ? "Aggiorna prodotto" : "Crea prodotto"}
             </button>
             {editingId ? (
               <button type="button" className="btn btn-outline-secondary btn-shell" onClick={resetForm}>
