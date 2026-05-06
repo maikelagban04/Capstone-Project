@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { apiRequest } from "../api/client";
 import ProductCard from "../components/ProductCard";
-import heroImage from "../assets/hero.png";
+import heroImage from "../assets/home-lineup--desktops.webp";
 import {
   ArrowRightIcon,
   CpuIcon,
