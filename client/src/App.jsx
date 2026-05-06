@@ -2,6 +2,7 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import CartDrawer from "./components/CartDrawer";
+import ScrollToTop from "./components/ScrollToTop";
 import OpenCartRoute from "./components/OpenCartRoute";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AdminRoute from "./components/AdminRoute";
@@ -26,6 +27,7 @@ import OAuthSuccessPage from "./pages/OAuthSuccessPage";
 const App = () => {
   return (
     <div className="app-shell">
+      <ScrollToTop />
       <Header />
       <main className="page-shell flex-grow-1">
         <Routes>
