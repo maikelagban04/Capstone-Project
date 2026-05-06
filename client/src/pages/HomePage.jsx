@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { apiRequest } from "../api/client";
 import ProductCard from "../components/ProductCard";
+import heroImage from "../assets/hero.png";
 import {
   ArrowRightIcon,
   CpuIcon,
@@ -96,10 +97,6 @@ const HomePage = () => {
   }, [products]);
 
   const totalProducts = products.length;
-  const heroImage =
-    products.find((p) => p.componentType === "GPU")?.image ||
-    products[0]?.image ||
-    "https://images.unsplash.com/photo-1587202372634-32705e3bf49c?w=800&q=80";
 
   return (
     <div className="home-page">

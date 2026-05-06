@@ -647,8 +647,22 @@ p, .muted { color: var(--muted); }
 .inventory-card__overlay { font-size: 0.85rem; letter-spacing: 0.16em; }
 
 .product-card__sale-badge,
-.product-view__sale,
 .inventory-card__sale {
+  position: absolute;
+  bottom: 0.85rem;
+  right: 0.85rem;
+  padding: 0.3rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  background: var(--brand-gradient);
+  color: #fff;
+  box-shadow: 0 6px 16px rgba(168, 85, 247, 0.35);
+  z-index: 2;
+}
+.product-view__sale {
   position: absolute;
   top: 0.85rem;
   right: 0.85rem;
