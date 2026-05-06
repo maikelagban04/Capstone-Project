@@ -1,39 +1,42 @@
-import dotenv from "dotenv";
+﻿import dotenv from "dotenv";
 import Product from "../models/Product.js";
 import { connectDatabase } from "../config/db.js";
+import productImages from "./productImages.json" with { type: "json" };
 
 dotenv.config();
 
 // ===========================================================================
-// PLACEHOLDER IMMAGINI --------------------------------------------------------
-// Ogni prodotto ha un placeholder con testo leggibile (brand + modello) su
-// sfondo scuro. Sostituire ciascun URL con il corrispondente link Cloudinary
-// dall'interfaccia Admin (Modifica → sezione Immagini).
+// IMMAGINI --------------------------------------------------------------------
+// Le URL Cloudinary reali vivono in productImages.json (generato da
+// `node scripts/syncCloudinaryImages.js`). Se un prodotto non ha ancora
+// un'immagine caricata, ricade su un placeholder con brand+model.
 // ---------------------------------------------------------------------------
 const ph = (label, variant = "1a1a2e") =>
   `https://placehold.co/800x800/${variant}/ffffff?text=${encodeURIComponent(label)}`;
 
-const galleryFor = (brand, model) => [
-  ph(`${brand}\n${model}`),
-  ph(`${brand}\n${model}\nAngolo 2`, "24243a"),
-  ph(`${brand}\n${model}\nDettaglio`, "0f172a"),
-];
+const resolveImage = (data) => {
+  const url = productImages[data.title];
+  return url || ph(`${data.brand}\n${data.model}`);
+};
 
 // Helper per applicare defaults comuni. Ogni prodotto dichiara solo i campi
 // che gli servono; il resto viene ereditato.
-const make = (data) => ({
-  markup: 15,
-  stock: 10,
-  isOnSale: false,
-  salePrice: null,
-  warrantyMonths: 24,
-  highlights: [],
-  images: galleryFor(data.brand, data.model),
-  image: ph(`${data.brand}\n${data.model}`),
-  specifications: {},
-  compatibility: {},
-  ...data,
-});
+const make = (data) => {
+  const image = data.image || resolveImage(data);
+  return {
+    markup: 15,
+    stock: 10,
+    isOnSale: false,
+    salePrice: null,
+    warrantyMonths: 24,
+    highlights: [],
+    image,
+    images: [image],
+    specifications: {},
+    compatibility: {},
+    ...data,
+  };
+};
 
 const products = [
   // ============================================================
@@ -43,12 +46,12 @@ const products = [
     title: "Intel Core i9-14900K",
     shortDescription: "Flagship Intel Raptor Lake Refresh: 24 core, boost 6.0 GHz.",
     description:
-      "Il top di gamma Intel di 14ª generazione: 8 P-core + 16 E-core per 24 core totali, boost massimo a 6.0 GHz, cache L3 da 36 MB. Gestisce ogni workload tra gaming competitivo e produttività professionale.",
+      "Il top di gamma Intel di 14Âª generazione: 8 P-core + 16 E-core per 24 core totali, boost massimo a 6.0 GHz, cache L3 da 36 MB. Gestisce ogni workload tra gaming competitivo e produttivitÃ  professionale.",
     highlights: [
       "24 core / 32 thread, boost fino a 6.0 GHz",
       "Cache L3 da 36 MB",
       "Supporto DDR5-5600 e PCIe 5.0",
-      "Socket LGA1700 con retro-compatibilità mobo Z690/Z790",
+      "Socket LGA1700 con retro-compatibilitÃ  mobo Z690/Z790",
     ],
     componentType: "CPU",
     brand: "Intel",
@@ -174,16 +177,12 @@ const products = [
       },
     },
     compatibility: { socket: "AM5", chipset: "AMD X670E", tdp: "120W" },
-    image: "https://res.cloudinary.com/dub057kx0/image/upload/q_auto/f_auto/v1777993623/AMD_Ryzen_9_7950X3D_ftmbgt.jpg",
-    images: [
-      "https://res.cloudinary.com/dub057kx0/image/upload/q_auto/f_auto/v1777993623/AMD_Ryzen_9_7950X3D_ftmbgt.jpg",
-    ],
   }),
   make({
     title: "AMD Ryzen 7 7800X3D",
     shortDescription: "Il miglior gaming CPU AM5: 8 core Zen 4 + 96 MB di V-Cache.",
     description:
-      "La CPU gaming più efficiente sul mercato: 8 core Zen 4 con 3D V-Cache e 96 MB di L3, boost 5.0 GHz, TDP 120W. Batte anche i chip da 16 core in moltissimi giochi.",
+      "La CPU gaming piÃ¹ efficiente sul mercato: 8 core Zen 4 con 3D V-Cache e 96 MB di L3, boost 5.0 GHz, TDP 120W. Batte anche i chip da 16 core in moltissimi giochi.",
     highlights: [
       "8 core / 16 thread, boost 5.0 GHz",
       "96 MB L3 grazie al 3D V-Cache",
@@ -223,7 +222,7 @@ const products = [
       "Architettura Ada Lovelace con 16384 CUDA core, 24 GB di GDDR6X e supporto a DLSS 3 con Frame Generation. La scelta indiscussa per gaming 4K maxed-out e rendering 3D professionale.",
     highlights: [
       "24 GB GDDR6X a 21 Gbps",
-      "16384 CUDA core + 128 RT core di 3ª gen",
+      "16384 CUDA core + 128 RT core di 3Âª gen",
       "DLSS 3 con Frame Generation",
       "Uscite HDMI 2.1 + 3x DisplayPort 1.4a",
     ],
@@ -255,9 +254,9 @@ const products = [
   }),
   make({
     title: "NVIDIA GeForce RTX 4080 SUPER",
-    shortDescription: "16GB GDDR6X a 256-bit: 4K ultra a prezzo più umano.",
+    shortDescription: "16GB GDDR6X a 256-bit: 4K ultra a prezzo piÃ¹ umano.",
     description:
-      "Refresh della RTX 4080 con memorie più veloci e 10240 CUDA core. Ottima per 4K 120 FPS nei giochi moderni con DLSS 3 attivo.",
+      "Refresh della RTX 4080 con memorie piÃ¹ veloci e 10240 CUDA core. Ottima per 4K 120 FPS nei giochi moderni con DLSS 3 attivo.",
     highlights: [
       "16 GB GDDR6X a 23 Gbps",
       "10240 CUDA core, 80 RT core",
@@ -329,12 +328,12 @@ const products = [
     title: "AMD Radeon RX 7900 XTX",
     shortDescription: "24GB GDDR6 RDNA 3: 4K gaming a prezzo competitivo.",
     description:
-      "L'ammiraglia Radeon con architettura chiplet RDNA 3 a 5nm, 24 GB di GDDR6 e DisplayPort 2.1 nativo. Alternativa potente alla RTX 4080 con più VRAM.",
+      "L'ammiraglia Radeon con architettura chiplet RDNA 3 a 5nm, 24 GB di GDDR6 e DisplayPort 2.1 nativo. Alternativa potente alla RTX 4080 con piÃ¹ VRAM.",
     highlights: [
       "24 GB GDDR6 su bus 384-bit",
       "Architettura chiplet RDNA 3",
       "DisplayPort 2.1 per monitor 8K",
-      "54% più efficiente della gen precedente",
+      "54% piÃ¹ efficiente della gen precedente",
     ],
     componentType: "GPU",
     brand: "AMD",
@@ -363,7 +362,7 @@ const products = [
     title: "AMD Radeon RX 7800 XT",
     shortDescription: "16GB GDDR6 per 1440p ultra: rapporto prezzo/prestazioni top.",
     description:
-      "Scheda sweet-spot per gaming 1440p maxed-out con FSR 3 a supporto. 16 GB di memoria VRAM rendono la 7800 XT più longeva delle controparti NVIDIA da 12 GB.",
+      "Scheda sweet-spot per gaming 1440p maxed-out con FSR 3 a supporto. 16 GB di memoria VRAM rendono la 7800 XT piÃ¹ longeva delle controparti NVIDIA da 12 GB.",
     highlights: [
       "16 GB GDDR6 a 256-bit",
       "3840 stream processor RDNA 3",
@@ -424,7 +423,7 @@ const products = [
   }),
   make({
     title: "G.Skill Trident Z5 RGB DDR5 32GB (2x16GB) 7200MHz CL34",
-    shortDescription: "32GB DDR5-7200 CL34: tra i kit più veloci del mercato.",
+    shortDescription: "32GB DDR5-7200 CL34: tra i kit piÃ¹ veloci del mercato.",
     description:
       "Kit ultra-tirato per appassionati di tuning e benchmark. Dissipatori in alluminio con finitura dual-tone e illuminazione ARGB a doppia striscia.",
     highlights: [
@@ -476,7 +475,7 @@ const products = [
     title: "Corsair Vengeance DDR5 64GB (2x32GB) 6400MHz CL32",
     shortDescription: "64GB DDR5-6400 per workstation e multitasking estremo.",
     description:
-      "Kit da 64 GB ideale per content creation, virtualizzazione e gaming moderno. Profili XMP 3.0 e stencil PCB ottimizzato per l'integrità del segnale.",
+      "Kit da 64 GB ideale per content creation, virtualizzazione e gaming moderno. Profili XMP 3.0 e stencil PCB ottimizzato per l'integritÃ  del segnale.",
     highlights: [
       "2x32GB DDR5-6400 CL32",
       "Profilo XMP 3.0 pronto",
@@ -499,9 +498,9 @@ const products = [
   }),
   make({
     title: "Crucial Pro DDR5 32GB (2x16GB) 5600MHz",
-    shortDescription: "32GB DDR5-5600 Micron NAND: affidabilità professionale.",
+    shortDescription: "32GB DDR5-5600 Micron NAND: affidabilitÃ  professionale.",
     description:
-      "Micron-Crucial propone uno dei kit più affidabili della categoria, pensato per workstation e build professionali con necessità di uptime continuo.",
+      "Micron-Crucial propone uno dei kit piÃ¹ affidabili della categoria, pensato per workstation e build professionali con necessitÃ  di uptime continuo.",
     highlights: [
       "2x16GB DDR5-5600",
       "Die Micron originali",
@@ -559,7 +558,7 @@ const products = [
     title: "WD_BLACK SN850X NVMe SSD 2TB",
     shortDescription: "Gen4 gaming-grade con Game Mode 2.0.",
     description:
-      "SSD NVMe di fascia enthusiast con modalità Game Mode 2.0 che anticipa le richieste di cache. Dissipatore opzionale disponibile.",
+      "SSD NVMe di fascia enthusiast con modalitÃ  Game Mode 2.0 che anticipa le richieste di cache. Dissipatore opzionale disponibile.",
     highlights: ["Read 7300 MB/s", "Write 6600 MB/s", "1200 TBW", "Game Mode 2.0"],
     componentType: "SSD",
     brand: "Western Digital",
@@ -646,7 +645,7 @@ const products = [
     title: "Samsung 980 Pro NVMe SSD 1TB",
     shortDescription: "Classico SSD Gen4 da 1TB a prezzo aggressivo.",
     description:
-      "Versione più piccola dell'iconico 980 Pro: ottimo per sistema operativo + 1-2 titoli AAA, con velocità da 7000 MB/s.",
+      "Versione piÃ¹ piccola dell'iconico 980 Pro: ottimo per sistema operativo + 1-2 titoli AAA, con velocitÃ  da 7000 MB/s.",
     highlights: ["Read 7000 MB/s", "Write 5000 MB/s", "600 TBW", "Ottimo per boot drive"],
     componentType: "SSD",
     brand: "Samsung",
@@ -679,7 +678,7 @@ const products = [
     title: "Western Digital Red Pro 8TB NAS HDD",
     shortDescription: "8TB 7200 RPM per NAS e file-server 24/7.",
     description:
-      "Hard disk progettato per ambienti NAS multi-bay con workload 24/7. Tecnologia CMR per massima affidabilità.",
+      "Hard disk progettato per ambienti NAS multi-bay con workload 24/7. Tecnologia CMR per massima affidabilitÃ .",
     highlights: ["8 TB CMR", "7200 RPM, 256 MB cache", "MTBF 1M ore", "Ideale per NAS 1-24 bay"],
     componentType: "HDD",
     brand: "Western Digital",
@@ -733,7 +732,7 @@ const products = [
     title: "Western Digital Black 4TB Gaming HDD",
     shortDescription: "4TB 7200 RPM con cache 256 MB per storage games.",
     description:
-      "Disco meccanico di fascia alta pensato per libreria Steam e archivi multimediali. Alta affidabilità e garanzia 5 anni.",
+      "Disco meccanico di fascia alta pensato per libreria Steam e archivi multimediali. Alta affidabilitÃ  e garanzia 5 anni.",
     highlights: ["4 TB CMR", "7200 RPM", "256 MB cache", "Garanzia 5 anni"],
     componentType: "HDD",
     brand: "Western Digital",
@@ -815,7 +814,7 @@ const products = [
     title: "ASUS ROG STRIX Z790-E Gaming WIFI II",
     shortDescription: "Z790 enthusiast ATX: DDR5-8000, Wi-Fi 7, 5x M.2.",
     description:
-      "Motherboard di punta per LGA1700 con VRM a 18+1+2 fasi da 90A, memoria DDR5 fino a 8000+ MT/s e connettività next-gen.",
+      "Motherboard di punta per LGA1700 con VRM a 18+1+2 fasi da 90A, memoria DDR5 fino a 8000+ MT/s e connettivitÃ  next-gen.",
     highlights: [
       "Socket LGA1700, CPU Intel 12-14 gen",
       "VRM 18+1+2 fasi da 90A",
@@ -1110,7 +1109,7 @@ const products = [
     title: "Seasonic Focus GX-850 ATX 3.0",
     shortDescription: "850W Gold Seasonic di riferimento con ATX 3.0.",
     description:
-      "Seasonic Focus GX aggiornato al 3.0 con connettore 12VHPWR. Ripple bassissimo e modalità ibrida silenziosa.",
+      "Seasonic Focus GX aggiornato al 3.0 con connettore 12VHPWR. Ripple bassissimo e modalitÃ  ibrida silenziosa.",
     highlights: ["80+ Gold", "ATX 3.0 + 12VHPWR", "Fully modular", "10 anni di garanzia"],
     componentType: "PSU",
     brand: "Seasonic",
@@ -1137,7 +1136,7 @@ const products = [
     title: "be quiet! Pure Power 12 M 850W 80+ Gold",
     shortDescription: "850W Gold silenzioso con ventola 120mm low-noise.",
     description:
-      "Alimentatore semi-modulare con focus sulla silenziosità: ventola 120mm a cuscinetto magnetico e pannelli fonoassorbenti interni.",
+      "Alimentatore semi-modulare con focus sulla silenziositÃ : ventola 120mm a cuscinetto magnetico e pannelli fonoassorbenti interni.",
     highlights: ["80+ Gold", "Ventola 120mm silenziosa", "ATX 3.0", "Garanzia 10 anni"],
     componentType: "PSU",
     brand: "be quiet!",
@@ -1228,7 +1227,7 @@ const products = [
     title: "Fractal Design Meshify 2",
     shortDescription: "Mid-tower high-airflow modulare con tre ventole incluse.",
     description:
-      "Fractal Meshify 2 è il riferimento per build silent+airflow. Interno totalmente modulare con supporto fino a 9 drive.",
+      "Fractal Meshify 2 Ã¨ il riferimento per build silent+airflow. Interno totalmente modulare con supporto fino a 9 drive.",
     highlights: ["E-ATX/ATX/mATX/ITX", "GPU fino a 467mm", "3x ventole Dynamic X2 incluse", "Fino a 9 drive bay"],
     componentType: "Case",
     brand: "Fractal Design",
@@ -1288,7 +1287,7 @@ const products = [
     title: "be quiet! Pure Base 500DX",
     shortDescription: "Mid-tower silent con mesh frontale e 3 ventole ARGB.",
     description:
-      "Case compatto con equilibrio perfetto tra silenziosità e airflow. Tre ventole Pure Wings 2 ARGB incluse.",
+      "Case compatto con equilibrio perfetto tra silenziositÃ  e airflow. Tre ventole Pure Wings 2 ARGB incluse.",
     highlights: ["ATX/mATX/ITX", "GPU fino a 369mm", "AIO 360mm front", "3 ventole 140mm incluse"],
     componentType: "Case",
     brand: "be quiet!",
@@ -1322,7 +1321,7 @@ const products = [
     title: "Noctua NH-D15 Chromax Black",
     shortDescription: "Il re dei dissipatori ad aria: 220W TDP in silenzio.",
     description:
-      "Dual tower con 6 heatpipe e due ventole NF-A15. Silenziosità di riferimento e garanzia 6 anni.",
+      "Dual tower con 6 heatpipe e due ventole NF-A15. SilenziositÃ  di riferimento e garanzia 6 anni.",
     highlights: ["Dual tower 6 heatpipe", "24.6 dB(A) max", "AM5/AM4/LGA1700/1200", "6 anni di garanzia"],
     componentType: "Cooling",
     brand: "Noctua",
@@ -1375,7 +1374,7 @@ const products = [
     title: "Arctic Liquid Freezer III 360 A-RGB",
     shortDescription: "AIO 360mm con VRM fan integrata e rapporto prezzo imbattibile.",
     description:
-      "La nuova serie Liquid Freezer III mantiene il DNA Arctic: eccellenti prestazioni termiche, rumorosità ridotta e prezzo honest.",
+      "La nuova serie Liquid Freezer III mantiene il DNA Arctic: eccellenti prestazioni termiche, rumorositÃ  ridotta e prezzo honest.",
     highlights: ["Radiatore 360mm", "VRM fan integrata", "Pump Generation IV", "Garanzia 6 anni"],
     componentType: "Cooling",
     brand: "Arctic",
@@ -1484,7 +1483,7 @@ const products = [
     title: "ASUS ROG Swift PG27AQDM 27\" QHD 240Hz OLED",
     shortDescription: "27\" QHD OLED 240Hz: punto di riferimento esport.",
     description:
-      "Nuovo pannello OLED WOLED di LG Display con 240Hz, 0.03ms GTG e HDR vero. Il monitor più completo per competitive gaming.",
+      "Nuovo pannello OLED WOLED di LG Display con 240Hz, 0.03ms GTG e HDR vero. Il monitor piÃ¹ completo per competitive gaming.",
     highlights: ["QHD OLED 240Hz", "0.03ms GTG", "HDR10 true-black", "DisplayPort 1.4 + HDMI 2.1"],
     componentType: "Monitor",
     brand: "ASUS",
@@ -1559,7 +1558,7 @@ const products = [
     title: "Gigabyte M27Q-X 27\" QHD 240Hz IPS",
     shortDescription: "27\" IPS QHD 240Hz con KVM integrato: il best-value.",
     description:
-      "Monitor 240Hz QHD IPS con KVM switch, USB-C e tactical crosshair. Ottimo rapporto qualità/prezzo.",
+      "Monitor 240Hz QHD IPS con KVM switch, USB-C e tactical crosshair. Ottimo rapporto qualitÃ /prezzo.",
     highlights: ["QHD 240Hz IPS", "0.5ms GTG", "KVM switch + USB-C", "FreeSync Premium"],
     componentType: "Monitor",
     brand: "Gigabyte",
@@ -1580,791 +1579,6 @@ const products = [
     },
     compatibility: { interface: "DisplayPort 1.4, HDMI 2.0" },
   }),
-];
-
-// Placeholder legacy rimosso: i prodotti precedenti (verboso, con blocchi come
-// `title: "Intel Core i9-13900KS",`) non sono più necessari grazie al builder
-// `make()`. L'array completo sopra ne conta 50 (5 per ognuno dei 10 tipi).
-const _LEGACY_REMOVED_PRODUCTS = [
-  {
-    title: "__REMOVED__Intel Core i9-13900KS",
-    description:
-      "Il processore desktop Intel più veloce mai realizzato: 24 core ibridi (8 P-core + 16 E-core) e boost fino a 6.0 GHz su singolo core, pensato per gaming estremo e workload creativi di livello professionale.",
-    shortDescription: "Flagship Intel Raptor Lake: 24 core fino a 6.0 GHz per gaming e content creation.",
-    highlights: [
-      "24 core / 32 thread con architettura ibrida Raptor Lake",
-      "Boost fino a 6.0 GHz, il più alto della categoria",
-      "Cache L3 da 36 MB, supporto DDR5-5600 e PCIe 5.0",
-      "Compatibile con motherboard Z690/Z790 socket LGA1700",
-    ],
-    componentType: "CPU",
-    brand: "Intel",
-    model: "Core i9-13900KS",
-    category: "Processors",
-    priceBase: 690,
-    markup: 15,
-    image: "https://images.unsplash.com/photo-1621905251918-48416bd8575a?w=800&h=800&fit=crop",
-    images: gallery("photo-1621905251918-48416bd8575a"),
-    releaseYear: 2023,
-    warrantyMonths: 36,
-    specifications: {
-      cores: "24 core / 32 thread",
-      frequency: "6.0 GHz Turbo",
-      power: "150W TDP",
-      cpu: {
-        architecture: "Raptor Lake",
-        coresCount: 24,
-        threadsCount: 32,
-        baseClockGhz: 3.2,
-        boostClockGhz: 6.0,
-        cacheL3Mb: 36,
-        processNm: 10,
-        integratedGpu: "Intel UHD Graphics 770",
-      },
-    },
-    compatibility: {
-      socket: "LGA1700",
-      chipset: "Intel Z790",
-      tdp: "150W",
-    },
-    stock: 15,
-  },
-  {
-    title: "AMD Ryzen 9 7950X",
-    description:
-      "Top di gamma della serie Ryzen 7000: 16 core Zen 4 a 5nm con boost fino a 5.7 GHz, supporto DDR5 e PCIe 5.0. Ideale per workstation, rendering e gaming AAA.",
-    shortDescription: "16 core Zen 4 a 5nm, boost 5.7 GHz. La CPU enthusiast definitiva per AM5.",
-    highlights: [
-      "16 core / 32 thread a 5nm TSMC",
-      "Boost fino a 5.7 GHz con Precision Boost Overdrive",
-      "Cache L3 da 64 MB, supporto DDR5-5200 nativo",
-      "Socket AM5 con longevità garantita fino al 2025+",
-    ],
-    componentType: "CPU",
-    brand: "AMD",
-    model: "Ryzen 9 7950X",
-    category: "Processors",
-    priceBase: 549,
-    markup: 13,
-    image: "https://images.unsplash.com/photo-1588286840104-8957b019727f?w=800&h=800&fit=crop",
-    images: gallery("photo-1588286840104-8957b019727f"),
-    releaseYear: 2022,
-    warrantyMonths: 36,
-    specifications: {
-      cores: "16 core / 32 thread",
-      frequency: "5.7 GHz Boost",
-      power: "170W TDP",
-      cpu: {
-        architecture: "Zen 4",
-        coresCount: 16,
-        threadsCount: 32,
-        baseClockGhz: 4.5,
-        boostClockGhz: 5.7,
-        cacheL3Mb: 64,
-        processNm: 5,
-        integratedGpu: "Radeon Graphics 2-core",
-      },
-    },
-    compatibility: {
-      socket: "AM5",
-      chipset: "AMD X670E",
-      tdp: "170W",
-    },
-    stock: 12,
-  },
-  {
-    title: "AMD Ryzen 7 5800X3D",
-    description:
-      "Il gaming king di AMD: 8 core Zen 3 con 96 MB di 3D V-Cache che triplicano la cache L3 rispetto a un Ryzen standard, regalando prestazioni in gioco superiori a CPU più costose.",
-    shortDescription: "8 core Zen 3 con 3D V-Cache: il miglior Ryzen per il solo gaming su AM4.",
-    highlights: [
-      "3D V-Cache da 96 MB totali per gaming estremo",
-      "Compatibile con tutte le motherboard AM4 con BIOS aggiornato",
-      "Consumo contenuto a 105W TDP",
-      "Nessun bisogno di DDR5: funziona perfettamente con RAM DDR4 esistente",
-    ],
-    componentType: "CPU",
-    brand: "AMD",
-    model: "Ryzen 7 5800X3D",
-    category: "Processors",
-    priceBase: 385,
-    markup: 12,
-    image: "https://images.unsplash.com/photo-1591799264318-7e6ef8ddb7ea?w=800&h=800&fit=crop",
-    images: gallery("photo-1591799264318-7e6ef8ddb7ea"),
-    releaseYear: 2022,
-    warrantyMonths: 36,
-    specifications: {
-      cores: "8 core / 16 thread",
-      frequency: "4.5 GHz Turbo",
-      power: "105W TDP",
-      cpu: {
-        architecture: "Zen 3 (3D V-Cache)",
-        coresCount: 8,
-        threadsCount: 16,
-        baseClockGhz: 3.4,
-        boostClockGhz: 4.5,
-        cacheL3Mb: 96,
-        processNm: 7,
-      },
-    },
-    compatibility: {
-      socket: "AM4",
-      chipset: "AMD X570",
-      tdp: "105W",
-    },
-    stock: 12,
-  },
-
-  // ========================= GPU =========================
-  {
-    title: "NVIDIA GeForce RTX 4090",
-    description:
-      "La scheda video consumer più potente al mondo: architettura Ada Lovelace, 24 GB GDDR6X e supporto completo a DLSS 3 con Frame Generation. Pensata per 4K gaming a refresh altissimi e rendering 3D professionale.",
-    shortDescription: "Il mostro 4K: 24GB GDDR6X, DLSS 3 e 16384 CUDA core per performance senza compromessi.",
-    highlights: [
-      "24 GB di memoria GDDR6X a 21 Gbps",
-      "16384 CUDA core e 128 RT core di 3ª gen",
-      "DLSS 3 con Frame Generation per prestazioni raddoppiate",
-      "Uscite HDMI 2.1 e 3x DisplayPort 1.4a per monitor 8K",
-    ],
-    componentType: "GPU",
-    brand: "NVIDIA",
-    model: "GeForce RTX 4090",
-    category: "Graphics Cards",
-    priceBase: 1599,
-    markup: 10,
-    image: "https://images.unsplash.com/photo-1591489630084-0f4cac73e1c2?w=800&h=800&fit=crop",
-    images: gallery("photo-1591489630084-0f4cac73e1c2"),
-    releaseYear: 2022,
-    warrantyMonths: 36,
-    weightGrams: 2200,
-    color: "Nero",
-    specifications: {
-      memory: "24 GB GDDR6X",
-      frequency: "2.52 GHz Boost",
-      power: "450W TDP",
-      gpu: {
-        vramGb: 24,
-        vramType: "GDDR6X",
-        boostClockMhz: 2520,
-        cudaCores: 16384,
-        rayTracingCores: 128,
-        tdpW: 450,
-        lengthMm: 304,
-        ports: ["HDMI 2.1", "DisplayPort 1.4a", "DisplayPort 1.4a", "DisplayPort 1.4a"],
-        recommendedPsuW: 850,
-      },
-    },
-    compatibility: {
-      interface: "PCIe 4.0 x16",
-      pciExpressVersion: "4.0",
-    },
-    stock: 8,
-  },
-  {
-    title: "AMD Radeon RX 7900 XTX",
-    description:
-      "L'ammiraglia Radeon RDNA 3: 24 GB GDDR6 e architettura chiplet per 4K gaming ad alto framerate. Eccellente rapporto prezzo/prestazioni rispetto alla concorrenza.",
-    shortDescription: "24GB GDDR6, RDNA 3 chiplet design: 4K gaming ad alto FPS a prezzo competitivo.",
-    highlights: [
-      "24 GB GDDR6 su bus 384-bit",
-      "Architettura chiplet RDNA 3 a 5nm",
-      "Supporto DisplayPort 2.1 per monitor 8K nativi",
-      "Efficienza migliorata del 54% rispetto alla generazione precedente",
-    ],
-    componentType: "GPU",
-    brand: "AMD",
-    model: "Radeon RX 7900 XTX",
-    category: "Graphics Cards",
-    priceBase: 899,
-    markup: 12,
-    image: "https://images.unsplash.com/photo-1587202372775-e229f172b9d7?w=800&h=800&fit=crop",
-    images: gallery("photo-1587202372775-e229f172b9d7"),
-    releaseYear: 2022,
-    warrantyMonths: 24,
-    weightGrams: 1700,
-    specifications: {
-      memory: "24 GB GDDR6",
-      frequency: "2.5 GHz Boost",
-      power: "355W TDP",
-      gpu: {
-        vramGb: 24,
-        vramType: "GDDR6",
-        boostClockMhz: 2500,
-        tdpW: 355,
-        lengthMm: 287,
-        ports: ["HDMI 2.1", "DisplayPort 2.1", "DisplayPort 2.1", "USB-C"],
-        recommendedPsuW: 800,
-      },
-    },
-    compatibility: {
-      interface: "PCIe 4.0 x16",
-      pciExpressVersion: "4.0",
-    },
-    stock: 10,
-  },
-
-  // ========================= RAM =========================
-  {
-    title: "Corsair Dominator Platinum RGB DDR5 32GB (2x16GB) 6000MHz",
-    description:
-      "Kit DDR5 enthusiast con profili Intel XMP 3.0 e AMD EXPO, dissipatori premium e illuminazione RGB CAPELLIX per il miglior rendering estetico della tua build.",
-    shortDescription: "32GB DDR5-6000 CL30 con RGB CAPELLIX. Profili XMP ed EXPO out-of-the-box.",
-    highlights: [
-      "Kit 2x16GB DDR5 a 6000 MHz CL30",
-      "12 LED CAPELLIX individualmente controllabili",
-      "Profili XMP 3.0 (Intel) e EXPO (AMD) certificati",
-      "Compatibilità garantita con tutte le mobo Z790/X670",
-    ],
-    componentType: "RAM",
-    brand: "Corsair",
-    model: "Dominator Platinum RGB DDR5 32GB",
-    category: "Memory",
-    priceBase: 245,
-    markup: 18,
-    image: "https://images.unsplash.com/photo-1541029071515-84cc54f84dc5?w=800&h=800&fit=crop",
-    images: gallery("photo-1541029071515-84cc54f84dc5"),
-    releaseYear: 2023,
-    warrantyMonths: 120,
-    specifications: {
-      memory: "32 GB (2x16GB)",
-      speed: "6000 MHz",
-      ram: {
-        sizeGb: 16,
-        modulesCount: 2,
-        speedMhz: 6000,
-        casLatency: 30,
-        voltage: 1.4,
-        rgb: true,
-      },
-    },
-    compatibility: {
-      memoryType: "DDR5",
-      formFactor: "DIMM",
-    },
-    stock: 25,
-  },
-  {
-    title: "Kingston Fury Beast DDR4 32GB (2x16GB) 3200MHz",
-    description:
-      "Kit DDR4 affidabile e aggressivo nel design per build gaming su piattaforme AM4 / LGA1200. Plug-and-play grazie al profilo XMP 2.0.",
-    shortDescription: "32GB DDR4-3200 CL16 per piattaforme AM4/LGA1200 con profilo XMP preimpostato.",
-    highlights: [
-      "Kit 2x16GB DDR4 a 3200 MHz CL16",
-      "Profilo XMP 2.0 per configurazione automatica",
-      "Dissipatore in alluminio a basso profilo (34mm)",
-      "Garanzia a vita",
-    ],
-    componentType: "RAM",
-    brand: "Kingston",
-    model: "Fury Beast DDR4 32GB",
-    category: "Memory",
-    priceBase: 120,
-    markup: 20,
-    image: "https://images.unsplash.com/photo-1562976540-1502c2145186?w=800&h=800&fit=crop",
-    images: gallery("photo-1562976540-1502c2145186"),
-    releaseYear: 2021,
-    warrantyMonths: 999,
-    specifications: {
-      memory: "32 GB (2x16GB)",
-      speed: "3200 MHz",
-      ram: {
-        sizeGb: 16,
-        modulesCount: 2,
-        speedMhz: 3200,
-        casLatency: 16,
-        voltage: 1.35,
-        rgb: false,
-      },
-    },
-    compatibility: {
-      memoryType: "DDR4",
-      formFactor: "DIMM",
-    },
-    stock: 30,
-  },
-
-  // ========================= SSD =========================
-  {
-    title: "Samsung 990 Pro NVMe SSD 2TB",
-    description:
-      "Il top del gaming storage: velocità sequenziali fino a 7450 MB/s in lettura e 6900 MB/s in scrittura grazie al controller Pascal e alla NAND V7 TLC.",
-    shortDescription: "NVMe PCIe 4.0 Gen4 top di gamma: fino a 7450 MB/s in lettura, ideale per DirectStorage.",
-    highlights: [
-      "Lettura sequenziale fino a 7450 MB/s",
-      "Scrittura sequenziale fino a 6900 MB/s",
-      "Controller Samsung Pascal + NAND V7 TLC",
-      "Ottimizzato per DirectStorage e gaming next-gen",
-    ],
-    componentType: "SSD",
-    brand: "Samsung",
-    model: "990 Pro 2TB",
-    category: "Storage",
-    priceBase: 245,
-    markup: 15,
-    image: "https://images.unsplash.com/photo-1625842268584-8f3296236761?w=800&h=800&fit=crop",
-    images: gallery("photo-1625842268584-8f3296236761"),
-    releaseYear: 2022,
-    warrantyMonths: 60,
-    specifications: {
-      capacity: "2 TB",
-      speed: "7450 MB/s Read",
-      ssd: {
-        capacityGb: 2000,
-        interface: "NVMe PCIe 4.0",
-        readMbS: 7450,
-        writeMbS: 6900,
-        tbw: 1200,
-        controller: "Samsung Pascal",
-        nandType: "V7 TLC",
-        dramCache: true,
-      },
-    },
-    compatibility: {
-      formFactor: "M.2 2280",
-      interface: "NVMe PCIe 4.0",
-      pciExpressVersion: "4.0",
-    },
-    stock: 18,
-  },
-  {
-    title: "WD_BLACK SN850X NVMe SSD 1TB",
-    description:
-      "SSD gaming di classe entusiasta con modalità Game Mode 2.0 che ottimizza caricamenti e streaming di texture.",
-    shortDescription: "NVMe Gen4 con Game Mode 2.0 per console-like loading su PC.",
-    highlights: [
-      "Fino a 7300 MB/s in lettura",
-      "Modalità Game Mode 2.0 con anticipazione cache",
-      "Dissipatore opzionale per performance sostenute",
-      "Endurance 600 TBW",
-    ],
-    componentType: "SSD",
-    brand: "Western Digital",
-    model: "WD_BLACK SN850X 1TB",
-    category: "Storage",
-    priceBase: 115,
-    markup: 16,
-    image: "https://images.unsplash.com/photo-1597872200969-2b65d56bd16b?w=800&h=800&fit=crop",
-    images: gallery("photo-1597872200969-2b65d56bd16b"),
-    releaseYear: 2022,
-    warrantyMonths: 60,
-    specifications: {
-      capacity: "1 TB",
-      speed: "7300 MB/s Read",
-      ssd: {
-        capacityGb: 1000,
-        interface: "NVMe PCIe 4.0",
-        readMbS: 7300,
-        writeMbS: 6300,
-        tbw: 600,
-        controller: "WD G2",
-        nandType: "BiCS5 TLC",
-        dramCache: true,
-      },
-    },
-    compatibility: {
-      formFactor: "M.2 2280",
-      interface: "NVMe PCIe 4.0",
-      pciExpressVersion: "4.0",
-    },
-    stock: 20,
-  },
-
-  // ========================= Motherboard =========================
-  {
-    title: "ASUS ROG STRIX Z790-E Gaming WIFI",
-    description:
-      "Motherboard ATX enthusiast per piattaforma Intel Raptor Lake: VRM a 18+1 fasi, supporto DDR5-7800+, 5 slot M.2 e Wi-Fi 6E integrato.",
-    shortDescription: "Z790 top di gamma ATX: DDR5-7800+, Wi-Fi 6E, 5x M.2, PCIe 5.0.",
-    highlights: [
-      "Socket LGA1700 per CPU Intel 12ª / 13ª / 14ª gen",
-      "VRM 18+1 fasi da 90A con dissipazione premium",
-      "4 slot DDR5 fino a 192 GB a 7800+ MHz",
-      "PCIe 5.0 x16, 5 slot M.2 (di cui 1 PCIe 5.0)",
-    ],
-    componentType: "Motherboard",
-    brand: "ASUS",
-    model: "ROG STRIX Z790-E",
-    category: "Motherboards",
-    priceBase: 389,
-    markup: 14,
-    image: "https://images.unsplash.com/photo-1562408590-e32931084e23?w=800&h=800&fit=crop",
-    images: gallery("photo-1562408590-e32931084e23"),
-    releaseYear: 2022,
-    warrantyMonths: 36,
-    specifications: {
-      motherboard: {
-        chipset: "Intel Z790",
-        memorySlots: 4,
-        maxMemoryGb: 192,
-        pcieVersion: "5.0",
-        m2Slots: 5,
-        sataPorts: 4,
-        wifi: true,
-        bluetooth: true,
-      },
-    },
-    compatibility: {
-      socket: "LGA1700",
-      chipset: "Intel Z790",
-      memoryType: "DDR5",
-      formFactor: "ATX",
-      memorySlots: 4,
-      maxMemoryGb: 192,
-      pciExpressVersion: "5.0",
-    },
-    stock: 12,
-  },
-  {
-    title: "MSI MPG B650 Edge WIFI",
-    description:
-      "Motherboard AM5 ATX con ottimo rapporto qualità/prezzo per build Ryzen 7000. Wi-Fi 6E, 4 slot DDR5 e design minimale con RGB Mystic Light.",
-    shortDescription: "AM5 ATX con PCIe 5.0 e DDR5: la base ideale per Ryzen 7000 senza strapagare.",
-    highlights: [
-      "Socket AM5 per CPU Ryzen 7000 / 8000 / 9000",
-      "VRM a 14+2+1 fasi con dissipatore esteso",
-      "PCIe 5.0 e supporto DDR5 fino a 6600+ MHz",
-      "Wi-Fi 6E, Bluetooth 5.3, 2.5 GbE LAN",
-    ],
-    componentType: "Motherboard",
-    brand: "MSI",
-    model: "MPG B650 Edge WIFI",
-    category: "Motherboards",
-    priceBase: 279,
-    markup: 13,
-    image: "https://images.unsplash.com/photo-1555617981-dac3880eac6e?w=800&h=800&fit=crop",
-    images: gallery("photo-1555617981-dac3880eac6e"),
-    releaseYear: 2022,
-    warrantyMonths: 36,
-    specifications: {
-      motherboard: {
-        chipset: "AMD B650",
-        memorySlots: 4,
-        maxMemoryGb: 128,
-        pcieVersion: "5.0",
-        m2Slots: 3,
-        sataPorts: 6,
-        wifi: true,
-        bluetooth: true,
-      },
-    },
-    compatibility: {
-      socket: "AM5",
-      chipset: "AMD B650",
-      memoryType: "DDR5",
-      formFactor: "ATX",
-      memorySlots: 4,
-      maxMemoryGb: 128,
-      pciExpressVersion: "5.0",
-    },
-    stock: 14,
-  },
-
-  // ========================= PSU =========================
-  {
-    title: "Corsair RM1000e 1000W 80+ Gold",
-    description:
-      "Alimentatore ATX 3.0 pienamente modulare con certificazione 80+ Gold, connettore 12VHPWR PCIe 5.0 nativo per GPU RTX 40 e ventola Zero-RPM fino al 40% di carico.",
-    shortDescription: "1000W ATX 3.0 fully modular con 12VHPWR per RTX 40. Silenzioso e affidabile.",
-    highlights: [
-      "Certificazione 80+ Gold (>90% di efficienza)",
-      "ATX 3.0 con connettore 12VHPWR 600W nativo",
-      "Fully modular: usi solo i cavi che ti servono",
-      "Ventola Zero-RPM sotto il 40% di carico per silenzio assoluto",
-    ],
-    componentType: "PSU",
-    brand: "Corsair",
-    model: "RM1000e 1000W",
-    category: "Power Supplies",
-    priceBase: 199,
-    markup: 17,
-    image: "https://images.unsplash.com/photo-1591488320449-011701bb6704?w=800&h=800&fit=crop",
-    images: gallery("photo-1591488320449-011701bb6704"),
-    releaseYear: 2022,
-    warrantyMonths: 84,
-    specifications: {
-      power: "1000W",
-      psu: {
-        wattage: 1000,
-        efficiencyRating: "80+ Gold",
-        modular: "Full",
-        fanSizeMm: 140,
-        atxVersion: "ATX 3.0",
-        pcie5Connector: true,
-      },
-    },
-    compatibility: {
-      wattage: "1000W",
-      formFactor: "ATX",
-      efficiencyRating: "80+ Gold",
-    },
-    stock: 16,
-  },
-  {
-    title: "EVGA SuperNOVA 850W G6 80+ Gold",
-    description:
-      "Alimentatore compatto fully modular con design FDB a ventola silenziosa, ideale per build gaming da 850W con margine.",
-    shortDescription: "850W fully modular 80+ Gold in chassis compatto (140mm) per case densi.",
-    highlights: [
-      "850W con certificazione 80+ Gold",
-      "Chassis compatto 140mm per build piccole",
-      "Fully modular con cavi piatti",
-      "Garanzia 10 anni",
-    ],
-    componentType: "PSU",
-    brand: "EVGA",
-    model: "SuperNOVA 850 G6",
-    category: "Power Supplies",
-    priceBase: 149,
-    markup: 18,
-    image: "https://images.unsplash.com/photo-1518770660439-4636190af475?w=800&h=800&fit=crop",
-    images: gallery("photo-1518770660439-4636190af475"),
-    releaseYear: 2021,
-    warrantyMonths: 120,
-    specifications: {
-      power: "850W",
-      psu: {
-        wattage: 850,
-        efficiencyRating: "80+ Gold",
-        modular: "Full",
-        fanSizeMm: 135,
-        atxVersion: "ATX 2.4",
-        pcie5Connector: false,
-      },
-    },
-    compatibility: {
-      wattage: "850W",
-      formFactor: "ATX",
-      efficiencyRating: "80+ Gold",
-    },
-    stock: 19,
-  },
-
-  // ========================= Case =========================
-  {
-    title: "Lian Li LANCOOL 3 Mesh",
-    description:
-      "Case mid-tower ATX con frontale mesh ad alta portata d'aria, due pannelli in vetro temperato swing-door e supporto per GPU fino a 435mm.",
-    shortDescription: "ATX mid-tower mesh: airflow eccellente e spazio per GPU fino a 435mm.",
-    highlights: [
-      "Supporta E-ATX, ATX, Micro-ATX e Mini-ITX",
-      "GPU fino a 435mm, dissipatore CPU fino a 176mm",
-      "Radiatori fino a 360mm (top + front)",
-      "Pannelli laterali in vetro temperato con apertura a battente",
-    ],
-    componentType: "Case",
-    brand: "Lian Li",
-    model: "LANCOOL 3 Mesh",
-    category: "Cases",
-    priceBase: 89,
-    markup: 20,
-    image: "https://images.unsplash.com/photo-1587202372583-49330a15584d?w=800&h=800&fit=crop",
-    images: gallery("photo-1587202372583-49330a15584d"),
-    releaseYear: 2022,
-    warrantyMonths: 24,
-    color: "Nero",
-    dimensionsMm: { length: 500, width: 229, height: 522 },
-    weightGrams: 13500,
-    specifications: {
-      case: {
-        formFactorSupport: ["E-ATX", "ATX", "mATX", "ITX"],
-        maxGpuLengthMm: 435,
-        maxCoolerHeightMm: 176,
-        fanSlotsIncluded: 4,
-        radiatorSupport: ["240", "280", "360"],
-        sidePanel: "Tempered Glass",
-      },
-    },
-    compatibility: {
-      formFactor: "ATX",
-      maxGpuLengthMm: 435,
-    },
-    stock: 22,
-  },
-  {
-    title: "Corsair 5000T RGB",
-    description:
-      "Case premium con 208 LED RGB integrati e supporto per build di fascia alta. Ampia compatibilità con AIO fino a 420mm.",
-    shortDescription: "Full tower premium con 208 LED RGB e supporto 420mm AIO.",
-    highlights: [
-      "208 LED RGB iCUE controllabili individualmente",
-      "Supporto E-ATX, ATX, Micro-ATX",
-      "Radiatori fino a 420mm (front)",
-      "9 slot per ventole, vetro temperato laterale",
-    ],
-    componentType: "Case",
-    brand: "Corsair",
-    model: "5000T RGB",
-    category: "Cases",
-    priceBase: 299,
-    markup: 15,
-    image: "https://images.unsplash.com/photo-1593640408182-31c70c8268f5?w=800&h=800&fit=crop",
-    images: gallery("photo-1593640408182-31c70c8268f5"),
-    releaseYear: 2021,
-    warrantyMonths: 24,
-    color: "Nero con RGB",
-    dimensionsMm: { length: 560, width: 260, height: 530 },
-    weightGrams: 18000,
-    specifications: {
-      case: {
-        formFactorSupport: ["E-ATX", "ATX", "mATX"],
-        maxGpuLengthMm: 420,
-        maxCoolerHeightMm: 170,
-        fanSlotsIncluded: 3,
-        radiatorSupport: ["240", "280", "360", "420"],
-        sidePanel: "Tempered Glass",
-      },
-    },
-    compatibility: {
-      formFactor: "ATX",
-      maxGpuLengthMm: 420,
-    },
-    stock: 11,
-  },
-
-  // ========================= Cooling =========================
-  {
-    title: "Noctua NH-D15 Chromax Black",
-    description:
-      "Il dissipatore ad aria di riferimento: doppia torre, due ventole NF-A15 PWM e capacità di raffreddare CPU fino a 220W TDP mantenendo silenziosità da record.",
-    shortDescription: "Il re dei dissipatori ad aria: 220W TDP gestiti in totale silenzio.",
-    highlights: [
-      "Doppia torre con 6 heatpipe e due ventole NF-A15",
-      "Silenziosità sotto i 24.6 dB(A) a pieno carico",
-      "Compatibile AM5, AM4, LGA1700, LGA1200",
-      "Garanzia 6 anni con pasta termica NT-H1 inclusa",
-    ],
-    componentType: "Cooling",
-    brand: "Noctua",
-    model: "NH-D15 Chromax Black",
-    category: "Cooling",
-    priceBase: 99,
-    markup: 19,
-    image: "https://images.unsplash.com/photo-1587202372775-e229f172b9d7?w=800&h=800&fit=crop",
-    images: gallery("photo-1587202372775-e229f172b9d7"),
-    releaseYear: 2022,
-    warrantyMonths: 72,
-    specifications: {
-      cooling: {
-        type: "Air",
-        fanCount: 2,
-        maxFanRpm: 1500,
-        noiseDbA: 24.6,
-        supportedSockets: ["AM5", "AM4", "LGA1700", "LGA1200", "LGA1151"],
-      },
-    },
-    compatibility: {
-      socket: "LGA1700",
-    },
-    stock: 13,
-  },
-  {
-    title: "Corsair H150i ELITE CAPELLIX 360mm AIO",
-    description:
-      "AIO 360mm con 3 ventole ML120 PWM e waterblock illuminato da 33 LED CAPELLIX. Gestione completa via software iCUE.",
-    shortDescription: "AIO 360mm con RGB CAPELLIX e gestione iCUE: ottimo per CPU enthusiast.",
-    highlights: [
-      "Radiatore 360mm con 3 ventole ML120 magnetic levitation",
-      "Waterblock con 33 LED CAPELLIX individualmente controllabili",
-      "Compatibile AM5, AM4, LGA1700, LGA1200",
-      "Controllo via software iCUE per curve e illuminazione",
-    ],
-    componentType: "Cooling",
-    brand: "Corsair",
-    model: "H150i ELITE CAPELLIX",
-    category: "Cooling",
-    priceBase: 179,
-    markup: 16,
-    image: "https://images.unsplash.com/photo-1591405351990-4726e331f141?w=800&h=800&fit=crop",
-    images: gallery("photo-1591405351990-4726e331f141"),
-    releaseYear: 2021,
-    warrantyMonths: 60,
-    specifications: {
-      cooling: {
-        type: "AIO",
-        radiatorSizeMm: 360,
-        fanCount: 3,
-        maxFanRpm: 2400,
-        noiseDbA: 37,
-        supportedSockets: ["AM5", "AM4", "LGA1700", "LGA1200"],
-      },
-    },
-    compatibility: {
-      socket: "LGA1700",
-      tdp: "250W",
-    },
-    stock: 9,
-  },
-
-  // ========================= Monitor =========================
-  {
-    title: "LG 27GN950-B UltraGear 4K 144Hz",
-    description:
-      "Monitor 27\" 4K IPS Nano con 144Hz di refresh, 1ms GTG e compatibilità G-Sync. Perfetto per gaming 4K ad alto framerate.",
-    shortDescription: "27\" 4K IPS Nano 144Hz con 1ms GTG e G-Sync Compatible.",
-    highlights: [
-      "Pannello Nano IPS 4K (3840x2160) 144Hz",
-      "1ms GTG, 98% DCI-P3, HDR600",
-      "G-Sync Compatible e FreeSync Premium",
-      "HDMI 2.1 e DisplayPort 1.4",
-    ],
-    componentType: "Monitor",
-    brand: "LG",
-    model: "27GN950-B",
-    category: "Monitors",
-    priceBase: 999,
-    markup: 12,
-    image: "https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?w=800&h=800&fit=crop",
-    images: gallery("photo-1527443224154-c4a3942d3acf"),
-    releaseYear: 2020,
-    warrantyMonths: 24,
-    specifications: {
-      details: {
-        Resolution: "3840 x 2160 (4K)",
-        "Refresh Rate": "144 Hz",
-        "Response Time": "1ms GTG",
-        Panel: "Nano IPS",
-      },
-    },
-    compatibility: {
-      interface: "DisplayPort 1.4, HDMI 2.1",
-    },
-    stock: 7,
-  },
-  {
-    title: "ASUS ROG Swift PG279QM 1440p 240Hz",
-    description:
-      "Monitor 27\" QHD IPS a 240Hz con 1ms GTG, HDR400 e G-Sync Ultimate. L'ibrido perfetto tra risoluzione elevata e framerate da esport.",
-    shortDescription: "27\" QHD IPS 240Hz con G-Sync Ultimate e HDR400 per esport senza compromessi.",
-    highlights: [
-      "Pannello Fast IPS QHD (2560x1440) 240Hz",
-      "1ms GTG con tecnologia ELMB-Sync",
-      "G-Sync Ultimate con modulo hardware NVIDIA",
-      "HDR400 con 400 nits di picco",
-    ],
-    componentType: "Monitor",
-    brand: "ASUS",
-    model: "ROG Swift PG279QM",
-    category: "Monitors",
-    priceBase: 799,
-    markup: 14,
-    image: "https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?w=800&h=800&fit=crop&sat=-50",
-    images: gallery("photo-1527443224154-c4a3942d3acf"),
-    releaseYear: 2021,
-    warrantyMonths: 36,
-    specifications: {
-      details: {
-        Resolution: "2560 x 1440 (QHD)",
-        "Refresh Rate": "240 Hz",
-        "Response Time": "1ms GTG",
-        Panel: "Fast IPS",
-      },
-    },
-    compatibility: {
-      interface: "DisplayPort 1.4, HDMI 2.0",
-    },
-    stock: 8,
-  },
 ];
 
 async function seedDatabase() {
