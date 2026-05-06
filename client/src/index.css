@@ -879,6 +879,15 @@ p, .muted { color: var(--muted); }
 
 /* Summary / checkout / auth -------------------------------------------------- */
 .summary-card, .checkout-card, .auth-card, .admin-card { display: grid; gap: 1rem; }
+.admin-card--cta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+.admin-card--cta h2 { margin: 0.25rem 0 0.35rem; }
+.admin-card--cta p { margin: 0; max-width: 56ch; }
 .checkout-card__section { display: grid; gap: 1rem; }
 
 .payment-grid { display: grid; gap: 0.65rem; grid-template-columns: 1fr 1fr; }

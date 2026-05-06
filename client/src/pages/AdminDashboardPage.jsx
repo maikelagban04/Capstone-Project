@@ -67,6 +67,7 @@ const AdminDashboardPage = () => {
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState("");
   const [message, setMessage] = useState("");
+  const [showForm, setShowForm] = useState(false);
 
   const headers = {
     Authorization: `Bearer ${auth.token}`,
@@ -102,6 +103,7 @@ const AdminDashboardPage = () => {
   const resetForm = () => {
     setEditingId("");
     setForm(emptyForm);
+    setShowForm(false);
   };
 
   const buildSpecsPayload = (currentForm) => {
@@ -189,6 +191,7 @@ const AdminDashboardPage = () => {
 
   const handleEdit = (product) => {
     setEditingId(product._id);
+    setShowForm(true);
 
     // Popola i gruppi dinamici con i valori esistenti, formattati per il form.
     const groupKey = TYPE_TO_SPEC_GROUP[product.componentType];
@@ -288,17 +291,36 @@ const AdminDashboardPage = () => {
       {message ? <div className="alert alert-info">{message}</div> : null}
 
       <section className="admin-layout">
+        {!showForm && !editingId ? (
+          <div className="admin-card admin-card--cta">
+            <div>
+              <span className="section-kicker">Inventario</span>
+              <h2>Aggiungi un nuovo prodotto</h2>
+              <p className="muted">
+                Compila il form per inserire un prodotto nel catalogo. Per l'immagine
+                incolla un link (es. URL Cloudinary).
+              </p>
+            </div>
+            <button
+              type="button"
+              className="btn btn-primary btn-shell btn-shell--primary"
+              onClick={() => setShowForm(true)}
+            >
+              + Nuovo prodotto
+            </button>
+          </div>
+        ) : null}
+
+        {showForm || editingId ? (
         <form className="admin-card admin-form" onSubmit={handleSubmit}>
           <div className="section-head">
             <div>
               <span className="section-kicker">Prodotto</span>
               <h2>{editingId ? "Modifica prodotto" : "Nuovo prodotto"}</h2>
             </div>
-            {editingId ? (
-              <button type="button" className="btn-shell" onClick={resetForm}>
-                Annulla modifica
-              </button>
-            ) : null}
+            <button type="button" className="btn-shell" onClick={resetForm}>
+              {editingId ? "Annulla modifica" : "Chiudi"}
+            </button>
           </div>
 
           {/* Sezione 1: Anagrafica --------------------------------------- */}
@@ -695,6 +717,7 @@ const AdminDashboardPage = () => {
             ) : null}
           </div>
         </form>
+        ) : null}
 
         <div className="admin-card">
           <div className="section-head">
