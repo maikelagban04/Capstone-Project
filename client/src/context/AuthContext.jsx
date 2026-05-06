@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { apiRequest } from "../api/client";
 import { AuthContext } from "./auth-context";
-const STORAGE_KEY = "dropship-store-pro-auth";
+const STORAGE_KEY = "kyrontech-auth";
 
 const SUPER_ADMIN_EMAIL = (
   import.meta.env.VITE_SUPER_ADMIN_EMAIL || "maikelagban04@gmail.com"

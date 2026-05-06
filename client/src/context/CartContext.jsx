@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { CartContext } from "./cart-context";
-const STORAGE_KEY = "dropship-store-pro-cart";
+const STORAGE_KEY = "kyrontech-cart";
 
 export const CartProvider = ({ children }) => {
   const [cartItems, setCartItems] = useState(() => {

@@ -1,6 +1,6 @@
 # PC Components E-Commerce Store
 
-Una piattaforma ecommerce specializzata nella vendita di componenti per computer. Il progetto è stato completamente trasformato da un generico dropshipping store a un negozio verticale per componenti PC di alta qualità.
+Una piattaforma ecommerce specializzata nella vendita di componenti per computer: KyronTech, un negozio verticale per componenti PC di alta qualità.
 
 ## Cosa è stato modificato
 
@@ -251,4 +251,4 @@ curl -X POST http://localhost:5000/api/products \
 
 ---
 
-**Progetto trasformato**: Dropship Store Pro → PC Components Store Pro 🖥️
+**Progetto**: KyronTech 🖥️

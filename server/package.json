@@ -1,7 +1,7 @@
 {
-  "name": "dropship-store-pro-server",
+  "name": "kyrontech-server",
   "version": "1.0.0",
-  "description": "Backend API for Dropship Store Pro",
+  "description": "Backend API for KyronTech",
   "main": "src/server.js",
   "type": "module",
   "scripts": {

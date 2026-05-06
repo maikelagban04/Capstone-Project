@@ -6,7 +6,7 @@ import { CloudinaryStorage } from "multer-storage-cloudinary";
 const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: {
-    folder: "dropship-store-pro",
+    folder: "kyrontech",
     resource_type: "auto",
     allowed_formats: ["jpg", "jpeg", "png", "gif", "webp"],
   },
