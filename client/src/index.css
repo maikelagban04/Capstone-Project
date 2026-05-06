@@ -1413,7 +1413,7 @@ textarea.form-control { min-height: 120px; resize: vertical; }
 .product-card__wishlist {
   position: absolute;
   top: 0.6rem;
-  left: 0.6rem;
+  right: 0.6rem;
   width: 36px;
   height: 36px;
   border-radius: 50%;

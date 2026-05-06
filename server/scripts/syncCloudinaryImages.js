@@ -40,19 +40,34 @@ const stripCloudinarySuffix = (basename) =>
 // ---------------------------------------------------------------------------
 // PARSE TITLES + BRAND/MODEL DAL SEED ---------------------------------------
 // ---------------------------------------------------------------------------
+// Regex che gestisce stringhe JS con escape (es. "Gigabyte M27Q-X 27\"")
+const jsString = (key) =>
+  new RegExp(`${key}:\\s*"((?:[^"\\\\]|\\\\.)*)"`);
+
+const unescapeJsString = (s) =>
+  s.replace(/\\(["\\nrt])/g, (_, c) => {
+    if (c === "n") return "\n";
+    if (c === "r") return "\r";
+    if (c === "t") return "\t";
+    return c;
+  });
+
 async function parseSeedProducts() {
   const text = await fs.readFile(SEED_FILE, "utf8");
-  // Match each "make({ ... })" block (non-greedy, but balance parens manually)
   const products = [];
   const makeRegex = /make\(\{([\s\S]*?)\n\s*\}\)/g;
   let match;
   while ((match = makeRegex.exec(text)) !== null) {
     const block = match[1];
-    const title = block.match(/title:\s*"([^"]+)"/)?.[1];
-    const brand = block.match(/brand:\s*"([^"]+)"/)?.[1];
-    const model = block.match(/model:\s*"([^"]+)"/)?.[1];
+    const title = block.match(jsString("title"))?.[1];
+    const brand = block.match(jsString("brand"))?.[1];
+    const model = block.match(jsString("model"))?.[1];
     if (title && brand && model) {
-      products.push({ title, brand, model });
+      products.push({
+        title: unescapeJsString(title),
+        brand: unescapeJsString(brand),
+        model: unescapeJsString(model),
+      });
     }
   }
   return products;
