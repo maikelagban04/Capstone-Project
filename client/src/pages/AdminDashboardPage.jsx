@@ -623,20 +623,36 @@ const AdminDashboardPage = () => {
                   }
 
                   if (field.type === "select") {
+                    const options = field.options || [];
+                    const isCustom = value !== "" && value !== false && !options.includes(value);
                     return (
                       <label key={field.key} className={fieldClass}>
                         <span>{field.label}</span>
                         <select
                           className="form-select"
-                          value={value}
-                          onChange={(event) => onChange(event.target.value)}
+                          value={isCustom ? "__other__" : value}
+                          onChange={(event) => {
+                            const next = event.target.value;
+                            onChange(next === "__other__" ? " " : next);
+                          }}
                         >
-                          {(field.options || []).map((opt) => (
+                          {options.map((opt) => (
                             <option key={opt} value={opt}>
                               {opt || "—"}
                             </option>
                           ))}
+                          <option value="__other__">Altro…</option>
                         </select>
+                        {isCustom ? (
+                          <input
+                            type="text"
+                            className="form-control"
+                            placeholder="Inserisci valore personalizzato"
+                            value={String(value).trim()}
+                            onChange={(event) => onChange(event.target.value || " ")}
+                            style={{ marginTop: "0.4rem" }}
+                          />
+                        ) : null}
                       </label>
                     );
                   }
@@ -672,20 +688,40 @@ const AdminDashboardPage = () => {
                   }));
 
                 if (field.type === "select") {
+                  const options = field.options || [];
+                  // Se il valore corrente non è tra le opzioni standard,
+                  // siamo in modalità "Altro" (es. valore custom su un
+                  // prodotto già in DB).
+                  const isCustom = value !== "" && !options.includes(value);
                   return (
                     <label key={field.key} className="admin-form__field">
                       <span>{field.label}</span>
                       <select
                         className="form-select"
-                        value={value}
-                        onChange={(event) => onChange(event.target.value)}
+                        value={isCustom ? "__other__" : value}
+                        onChange={(event) => {
+                          const next = event.target.value;
+                          // "Altro" → svuota: l'input testuale prende il sopravvento
+                          onChange(next === "__other__" ? " " : next);
+                        }}
                       >
-                        {(field.options || []).map((opt) => (
+                        {options.map((opt) => (
                           <option key={opt} value={opt}>
                             {opt || "—"}
                           </option>
                         ))}
+                        <option value="__other__">Altro…</option>
                       </select>
+                      {isCustom ? (
+                        <input
+                          type="text"
+                          className="form-control"
+                          placeholder="Inserisci valore personalizzato"
+                          value={value.trim()}
+                          onChange={(event) => onChange(event.target.value || " ")}
+                          style={{ marginTop: "0.4rem" }}
+                        />
+                      ) : null}
                     </label>
                   );
                 }

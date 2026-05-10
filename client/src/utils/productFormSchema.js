@@ -96,19 +96,96 @@ export const TYPE_TO_SPEC_GROUP = {
 
 // Campi della sezione compatibility: sono trasversali a molti tipi, quindi
 // li mostriamo sempre ma con hint sul tipo consigliato.
+// I select hanno "" come prima opzione = "Nessuno / non applicabile".
 export const COMPATIBILITY_FIELDS = [
-  { key: "socket", label: "Socket", type: "text", placeholder: "AM5, LGA1700" },
-  { key: "chipset", label: "Chipset", type: "text" },
-  { key: "interface", label: "Interfaccia", type: "text", placeholder: "PCIe 4.0 x16" },
-  { key: "formFactor", label: "Form factor", type: "text", placeholder: "ATX, mATX, ITX, DIMM, M.2 2280" },
+  {
+    key: "socket",
+    label: "Socket",
+    type: "select",
+    options: [
+      "",
+      "AM5", "AM4", "sTR5", "sTRX4",
+      "LGA1851", "LGA1700", "LGA1200", "LGA2066",
+    ],
+  },
+  {
+    key: "chipset",
+    label: "Chipset",
+    type: "select",
+    options: [
+      "",
+      "Intel Z790", "Intel B760", "Intel H770", "Intel H610",
+      "Intel Z690", "Intel B660",
+      "AMD X670E", "AMD X670", "AMD B650E", "AMD B650", "AMD A620",
+      "AMD X570", "AMD B550", "AMD A520",
+    ],
+  },
+  {
+    key: "interface",
+    label: "Interfaccia",
+    type: "select",
+    options: [
+      "",
+      "PCIe 5.0 x16", "PCIe 4.0 x16", "PCIe 3.0 x16",
+      "PCIe 5.0 x4", "PCIe 4.0 x4", "PCIe 3.0 x4",
+      "NVMe M.2 2280", "NVMe M.2 2230",
+      "SATA III", "SATA II",
+      "USB-C", "USB 3.2", "USB 2.0",
+      "DisplayPort 1.4", "DisplayPort 2.1", "HDMI 2.1", "HDMI 2.0",
+    ],
+  },
+  {
+    key: "formFactor",
+    label: "Form factor",
+    type: "select",
+    options: [
+      "",
+      "ATX", "Micro-ATX", "Mini-ITX", "E-ATX", "XL-ATX",
+      "DIMM", "SO-DIMM",
+      "M.2 2280", "M.2 2230", "M.2 2242",
+      "2.5\"", "3.5\"",
+    ],
+  },
   { key: "memoryType", label: "Tipo memoria", type: "select", options: ["", "DDR4", "DDR5"] },
-  { key: "wattage", label: "Wattaggio (testo)", type: "text", placeholder: "850W" },
-  { key: "tdp", label: "TDP (testo)", type: "text", placeholder: "170W" },
-  { key: "pciExpressVersion", label: "Versione PCIe", type: "text", placeholder: "5.0" },
+  {
+    key: "wattage",
+    label: "Wattaggio",
+    type: "select",
+    options: [
+      "",
+      "450W", "550W", "650W", "750W", "850W",
+      "1000W", "1200W", "1500W", "1600W",
+    ],
+  },
+  {
+    key: "tdp",
+    label: "TDP",
+    type: "select",
+    options: [
+      "",
+      "35W", "45W", "65W", "95W", "105W", "120W", "125W",
+      "150W", "170W", "200W", "250W", "300W", "350W", "450W",
+    ],
+  },
+  {
+    key: "pciExpressVersion",
+    label: "Versione PCIe",
+    type: "select",
+    options: ["", "3.0", "4.0", "5.0"],
+  },
   { key: "memorySlots", label: "Slot RAM (solo mobo)", type: "number" },
   { key: "maxMemoryGb", label: "RAM max GB (solo mobo)", type: "number" },
   { key: "maxGpuLengthMm", label: "GPU max mm (solo case)", type: "number" },
-  { key: "efficiencyRating", label: "Certificazione (solo PSU)", type: "text" },
+  {
+    key: "efficiencyRating",
+    label: "Certificazione (solo PSU)",
+    type: "select",
+    options: [
+      "",
+      "80+ White", "80+ Bronze", "80+ Silver",
+      "80+ Gold", "80+ Platinum", "80+ Titanium",
+    ],
+  },
 ];
 
 // Parsing del valore dal form al formato atteso dal modello.

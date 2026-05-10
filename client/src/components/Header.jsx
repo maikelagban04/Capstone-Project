@@ -117,7 +117,7 @@ const Header = () => {
             <NavLink to="/catalog" onClick={closeMenu}>Catalogo</NavLink>
             <NavLink to="/pc-builder" onClick={closeMenu}>PC Builder</NavLink>
             <NavLink to="/support" onClick={closeMenu}>Supporto</NavLink>
-            {isAdmin ? <NavLink to="/admin" onClick={closeMenu}>Dashboard</NavLink> : null}
+            {isAdmin ? <NavLink to="/admin" end onClick={closeMenu}>Dashboard</NavLink> : null}
             {isAdmin ? <NavLink to="/admin/users" onClick={closeMenu}>Utenti</NavLink> : null}
             {isSuperAdmin ? <NavLink to="/admin/inventory" onClick={closeMenu}>Inventario</NavLink> : null}
           </nav>

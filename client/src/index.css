@@ -1964,8 +1964,9 @@ textarea.form-control { min-height: 120px; resize: vertical; }
 .home-hero-v2__pill svg { width: 14px; height: 14px; }
 .home-hero-v2__title {
   font-size: clamp(2.2rem, 5vw, 3.6rem);
-  line-height: 1.1;
+  line-height: 1.2;
   margin: 0 0 1rem;
+  padding-bottom: 0.1em;
   background: linear-gradient(135deg, var(--text-strong), var(--muted-strong));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
