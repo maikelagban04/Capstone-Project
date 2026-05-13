@@ -1,16 +1,42 @@
-# React + Vite
+# KyronTech — Client
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Frontend React + Vite di KyronTech. Per la documentazione completa del progetto vedi il [README principale](../README.md).
 
-Currently, two official plugins are available:
+## Setup rapido
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+```bash
+npm install
+cp .env.example .env   # imposta VITE_API_URL
+npm run dev            # → http://localhost:5173
+```
 
-## React Compiler
+## Comandi
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+| Comando | Descrizione |
+|---------|-------------|
+| `npm run dev` | Vite dev server con HMR |
+| `npm run build` | Build di produzione in `dist/` |
+| `npm run preview` | Anteprima della build |
+| `npm run lint` | ESLint |
 
-## Expanding the ESLint configuration
+## Variabili d'ambiente
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+Vedi `.env.example`. Solo le variabili prefissate `VITE_` sono esposte al bundle.
+
+- `VITE_API_URL` — URL base del backend (obbligatoria)
+- `VITE_SUPER_ADMIN_EMAIL` — email del super admin (opzionale, solo per UI)
+
+## Struttura
+
+```
+src/
+├── api/         # Client HTTP (apiRequest)
+├── assets/      # Logo, hero image
+├── components/  # Header, Footer, CartDrawer, ProductCard, ScrollToTop, icons
+├── context/     # AuthContext, CartContext, WishlistContext, ThemeContext
+├── hooks/       # useAuth, useCart, useWishlist, useTheme
+├── pages/       # HomePage, CatalogPage, ProductDetailPage, PCBuilderPage,
+│                # CheckoutPage, AdminDashboardPage, InventoryAdminPage, ...
+└── utils/       # productFormSchema (campi dinamici admin form)
+```
+
