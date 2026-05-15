@@ -16,6 +16,8 @@ Dentro trovi:
 
 Se vuoi farlo girare in locale, segui la sezione [Setup locale](#setup-locale). Se ti interessa solo guardare il codice, parti da [Struttura del progetto](#struttura-del-progetto).
 
+Link Deploy: https://capstone-project-three-lake.vercel.app/
+
 ---
 
 **Capstone Project — Epicode Full Stack Web Development**
